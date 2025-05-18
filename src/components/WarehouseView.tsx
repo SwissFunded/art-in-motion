@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Box, Warehouse, FolderOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 export const WarehouseView: React.FC = () => {
   const { locations, getArtworksByContainer, setSelectedArtwork, getChildLocations } = useArtwork();
@@ -78,45 +79,61 @@ export const WarehouseView: React.FC = () => {
     const childLocations = getChildLocations(location.id);
     const hasChildren = childLocations.length > 0;
 
+    // Translations for location types
+    const getLocationTypeLabel = (type: string, count: number = 1) => {
+      switch(type) {
+        case "warehouse": return count > 1 ? "Etagen" : "Etage";
+        case "etage": return count > 1 ? "Regale" : "Regal";
+        case "shelf": return count > 1 ? "Boxen" : "Box";
+        default: return type;
+      }
+    };
+
     return (
-      <Card 
-        key={location.id} 
-        className="mb-4 cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={() => handleLocationClick(location)}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center">
-            {renderLocationIcon(location.type)}
-            <span className="ml-2">{location.name}</span>
-          </CardTitle>
-          <div className="flex space-x-2">
-            {hasChildren && (
-              <Badge variant="outline">{childLocations.length} {location.type === "warehouse" ? "etages" : location.type === "etage" ? "shelves" : "boxes"}</Badge>
+        <Card 
+          key={location.id} 
+          className="mb-4 cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => handleLocationClick(location)}
+        >
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center">
+              {renderLocationIcon(location.type)}
+              <span className="ml-2">{location.name}</span>
+            </CardTitle>
+            <div className="flex space-x-2">
+              {hasChildren && (
+                <Badge variant="outline">{childLocations.length} {getLocationTypeLabel(location.type, childLocations.length)}</Badge>
+              )}
+              <Badge>{artworksInContainer.length} Kunstwerk{artworksInContainer.length !== 1 ? 'e' : ''}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {artworksInContainer.length === 0 ? (
+              <p className="text-sm text-gray-500">Keine Kunstwerke direkt hier gelagert.</p>
+            ) : (
+              <ul className="space-y-2">
+                {artworksInContainer.map(artwork => (
+                  <li 
+                    key={artwork.id}
+                    className="text-sm p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedArtwork(artwork);
+                    }}
+                  >
+                    {artwork.name} - {artwork.artist}
+                  </li>
+                ))}
+              </ul>
             )}
-            <Badge>{artworksInContainer.length} artwork{artworksInContainer.length !== 1 ? 's' : ''}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {artworksInContainer.length === 0 ? (
-            <p className="text-sm text-gray-500">No artworks directly stored here.</p>
-          ) : (
-            <ul className="space-y-2">
-              {artworksInContainer.map(artwork => (
-                <li 
-                  key={artwork.id}
-                  className="text-sm p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedArtwork(artwork);
-                  }}
-                >
-                  {artwork.name} - {artwork.artist}
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   };
 
@@ -124,13 +141,13 @@ export const WarehouseView: React.FC = () => {
     if (currentView.boxId) {
       // Box view - show artworks in this box
       const box = locations.find(l => l.id === currentView.boxId);
-      if (!box) return <div>Box not found</div>;
+      if (!box) return <div>Box nicht gefunden</div>;
       return (
         <div>
           <Button variant="outline" onClick={navigateBack} className="mb-4">
-            <ArrowLeft className="mr-2" size={16} /> Back to Shelf
+            <ArrowLeft className="mr-2" size={16} /> Zurück zum Regal
           </Button>
-          <h2 className="text-lg font-medium mb-4">{box.name} Contents</h2>
+          <h2 className="text-lg font-medium mb-4">{box.name} Inhalt</h2>
           {renderLocationCard(box)}
         </div>
       );
@@ -139,17 +156,17 @@ export const WarehouseView: React.FC = () => {
     if (currentView.shelfId) {
       // Shelf view - show boxes in this shelf
       const shelf = locations.find(l => l.id === currentView.shelfId);
-      if (!shelf) return <div>Shelf not found</div>;
+      if (!shelf) return <div>Regal nicht gefunden</div>;
       const boxes = getChildLocations(currentView.shelfId);
 
       return (
         <div>
           <Button variant="outline" onClick={navigateBack} className="mb-4">
-            <ArrowLeft className="mr-2" size={16} /> Back to Etage
+            <ArrowLeft className="mr-2" size={16} /> Zurück zur Etage
           </Button>
-          <h2 className="text-lg font-medium mb-4">{shelf.name} Boxes</h2>
+          <h2 className="text-lg font-medium mb-4">{shelf.name} Boxen</h2>
           {boxes.length === 0 ? (
-            <p className="text-gray-500">No boxes on this shelf.</p>
+            <p className="text-gray-500">Keine Boxen in diesem Regal.</p>
           ) : (
             boxes.map(box => renderLocationCard(box))
           )}
@@ -160,17 +177,17 @@ export const WarehouseView: React.FC = () => {
     if (currentView.etageId) {
       // Etage view - show shelves in this etage
       const etage = locations.find(l => l.id === currentView.etageId);
-      if (!etage) return <div>Etage not found</div>;
+      if (!etage) return <div>Etage nicht gefunden</div>;
       const shelves = getChildLocations(currentView.etageId);
 
       return (
         <div>
           <Button variant="outline" onClick={navigateBack} className="mb-4">
-            <ArrowLeft className="mr-2" size={16} /> Back to Warehouse
+            <ArrowLeft className="mr-2" size={16} /> Zurück zum Lagerhaus
           </Button>
-          <h2 className="text-lg font-medium mb-4">{etage.name} Shelves</h2>
+          <h2 className="text-lg font-medium mb-4">{etage.name} Regale</h2>
           {shelves.length === 0 ? (
-            <p className="text-gray-500">No shelves on this etage.</p>
+            <p className="text-gray-500">Keine Regale in dieser Etage.</p>
           ) : (
             shelves.map(shelf => renderLocationCard(shelf))
           )}
@@ -184,9 +201,9 @@ export const WarehouseView: React.FC = () => {
     
     return (
       <div>
-        <h2 className="text-lg font-medium mb-4">{warehouse?.name} Etages</h2>
+        <h2 className="text-lg font-medium mb-4">{warehouse?.name} Etagen</h2>
         {etages.length === 0 ? (
-          <p className="text-gray-500">No etages in this warehouse.</p>
+          <p className="text-gray-500">Keine Etagen in diesem Lagerhaus.</p>
         ) : (
           etages.map(etage => renderLocationCard(etage))
         )}
@@ -195,12 +212,12 @@ export const WarehouseView: React.FC = () => {
   };
 
   if (warehouses.length === 0) {
-    return <div>No warehouses found</div>;
+    return <div>Keine Lagerhäuser gefunden</div>;
   }
 
   return (
     <div className="w-full">
-      <h1 className="text-2xl font-bold mb-6">Warehouse Organization</h1>
+      <h1 className="text-2xl font-bold mb-6">Lagerhaus-Organisation</h1>
       
       <Tabs 
         value={selectedWarehouse} 

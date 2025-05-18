@@ -5,6 +5,7 @@ import { ArtworkCard } from "./ArtworkCard";
 import { LocationFilter } from "./LocationFilter";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
 
 export const ArtworksList: React.FC = () => {
   const { artworks } = useArtwork();
@@ -19,15 +20,20 @@ export const ArtworksList: React.FC = () => {
   });
 
   return (
-    <div className="w-full">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="w-full"
+    >
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold mb-4 md:mb-0">Artworks</h1>
+        <h1 className="text-2xl font-bold mb-4 md:mb-0">Kunstwerke</h1>
         <div className="max-w-xs">
-          <Label htmlFor="search" className="sr-only">Search</Label>
+          <Label htmlFor="search" className="sr-only">Suche</Label>
           <Input
             id="search"
             type="text"
-            placeholder="Search by name or artist..."
+            placeholder="Nach Name oder Künstler suchen..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-xs"
@@ -42,15 +48,34 @@ export const ArtworksList: React.FC = () => {
 
       {filteredArtworks.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          No artworks found matching your criteria.
+          Keine Kunstwerke gefunden, die Ihren Kriterien entsprechen.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredArtworks.map(artwork => (
-            <ArtworkCard key={artwork.id} artwork={artwork} />
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: {
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+        >
+          {filteredArtworks.map((artwork, index) => (
+            <motion.div
+              key={artwork.id}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+              }}
+            >
+              <ArtworkCard artwork={artwork} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
