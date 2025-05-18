@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 export const WarehouseView: React.FC = () => {
-  const { locations, getArtworksByContainer, setSelectedArtwork, getChildLocations } = useArtwork();
+  const { locations, getArtworksByContainer, setSelectedArtwork, getChildLocations, artworks } = useArtwork();
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(locations.find(l => l.type === "warehouse")?.id || "");
   const [currentView, setCurrentView] = useState<{
     warehouseId: string;
@@ -74,20 +74,20 @@ export const WarehouseView: React.FC = () => {
     }
   };
 
-  // Get all artworks in a location and its child locations recursively
+  // Fixed: Get all artworks in a specific container and all its children
   const getTotalArtworksInLocation = (locationId: string): number => {
-    // Get artworks directly in this location
-    const directArtworks = getArtworksByContainer(locationId).length;
+    // Check artworks that are directly in this container
+    const directArtworks = artworks.filter(a => a.containerId === locationId).length;
     
-    // Get child locations
-    const children = getChildLocations(locationId);
+    // Get all child locations
+    const childLocations = getChildLocations(locationId);
     
-    // Sum up artworks in all child locations recursively
-    const childArtworks = children.reduce((sum, child) => {
+    // For each child location, count their artworks recursively
+    const childArtworks = childLocations.reduce((sum, child) => {
       return sum + getTotalArtworksInLocation(child.id);
     }, 0);
     
-    // Return total count
+    // Return the total count
     return directArtworks + childArtworks;
   };
 
@@ -110,12 +110,12 @@ export const WarehouseView: React.FC = () => {
 
     return (
       <motion.div
+        key={location.id} // Fixed: Added key prop to motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
         <Card 
-          key={location.id} 
           className="mb-4 cursor-pointer hover:bg-gray-50 transition-colors"
           onClick={() => handleLocationClick(location)}
         >
@@ -263,3 +263,4 @@ export const WarehouseView: React.FC = () => {
     </div>
   );
 };
+
