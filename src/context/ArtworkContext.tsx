@@ -9,26 +9,46 @@ export interface Artwork {
   year: number;
   image?: string;
   locationId: string;
-  containerType: "warehouse" | "table" | "stage";
+  containerType: "warehouse" | "etage" | "shelf" | "box";
   containerId: string;
 }
 
 export interface Location {
   id: string;
   name: string;
-  type: "warehouse" | "table" | "stage";
-  parentId?: string; // For tables within warehouses
+  type: "warehouse" | "etage" | "shelf" | "box";
+  parentId?: string; // For hierarchy: etages within warehouses, shelves within etages, etc.
 }
 
-// Sample data
+// Sample data with hierarchical structure
 const initialLocations: Location[] = [
+  // Warehouses
   { id: "w1", name: "Warehouse 1", type: "warehouse" },
   { id: "w2", name: "Warehouse 2", type: "warehouse" },
-  { id: "t1", name: "Table A", type: "table", parentId: "w1" },
-  { id: "t2", name: "Table B", type: "table", parentId: "w1" },
-  { id: "t3", name: "Table C", type: "table", parentId: "w2" },
-  { id: "s1", name: "Stage 1", type: "stage", parentId: "w1" },
-  { id: "s2", name: "Stage 2", type: "stage", parentId: "w2" },
+  { id: "w3", name: "Warehouse 3", type: "warehouse" },
+  { id: "w4", name: "Warehouse 4", type: "warehouse" },
+  
+  // Etages (floors) in Warehouse 1
+  { id: "e1", name: "Etage 1", type: "etage", parentId: "w1" },
+  { id: "e2", name: "Etage 2", type: "etage", parentId: "w1" },
+  
+  // Etages in Warehouse 2
+  { id: "e3", name: "Etage 1", type: "etage", parentId: "w2" },
+  { id: "e4", name: "Etage 2", type: "etage", parentId: "w2" },
+  
+  // Shelves in Etage 1 of Warehouse 1
+  { id: "s1", name: "Shelf A", type: "shelf", parentId: "e1" },
+  { id: "s2", name: "Shelf B", type: "shelf", parentId: "e1" },
+  
+  // Shelves in Etage 2 of Warehouse 1
+  { id: "s3", name: "Shelf A", type: "shelf", parentId: "e2" },
+  
+  // Boxes in Shelf A of Etage 1
+  { id: "b1", name: "Box 1", type: "box", parentId: "s1" },
+  { id: "b2", name: "Box 2", type: "box", parentId: "s1" },
+  
+  // Boxes in Shelf B of Etage 1
+  { id: "b3", name: "Box 1", type: "box", parentId: "s2" },
 ];
 
 const initialArtworks: Artwork[] = [
@@ -38,8 +58,8 @@ const initialArtworks: Artwork[] = [
     artist: "Artist A",
     year: 2020,
     locationId: "w1",
-    containerType: "warehouse",
-    containerId: "w1"
+    containerType: "box",
+    containerId: "b1"
   },
   {
     id: "a2",
@@ -47,8 +67,8 @@ const initialArtworks: Artwork[] = [
     artist: "Artist B",
     year: 2018,
     locationId: "w1",
-    containerType: "table",
-    containerId: "t1"
+    containerType: "box",
+    containerId: "b2"
   },
   {
     id: "a3",
@@ -56,8 +76,8 @@ const initialArtworks: Artwork[] = [
     artist: "Artist A",
     year: 2021,
     locationId: "w1",
-    containerType: "table",
-    containerId: "t2"
+    containerType: "box",
+    containerId: "b3"
   },
   {
     id: "a4",
@@ -65,17 +85,17 @@ const initialArtworks: Artwork[] = [
     artist: "Artist C",
     year: 2019,
     locationId: "w2",
-    containerType: "warehouse",
-    containerId: "w2"
+    containerType: "etage",
+    containerId: "e3"
   },
   {
     id: "a5",
     name: "Artwork 5",
     artist: "Artist D",
     year: 2022,
-    locationId: "w2",
-    containerType: "table",
-    containerId: "t3"
+    locationId: "w3",
+    containerType: "warehouse",
+    containerId: "w3"
   },
   {
     id: "a6",
@@ -83,19 +103,20 @@ const initialArtworks: Artwork[] = [
     artist: "Artist B",
     year: 2017,
     locationId: "w1",
-    containerType: "stage",
-    containerId: "s1"
+    containerType: "box",
+    containerId: "b1"
   },
 ];
 
 interface ArtworkContextType {
   artworks: Artwork[];
   locations: Location[];
-  moveArtwork: (artworkId: string, newContainerId: string, containerType: "warehouse" | "table" | "stage") => void;
+  moveArtwork: (artworkId: string, newContainerId: string, containerType: "warehouse" | "etage" | "shelf" | "box") => void;
   getLocationById: (id: string) => Location | undefined;
   getLocationName: (containerId: string) => string;
   getArtworksByLocation: (locationId: string) => Artwork[];
   getArtworksByContainer: (containerId: string) => Artwork[];
+  getChildLocations: (parentId: string) => Location[];
   selectedArtwork: Artwork | null;
   setSelectedArtwork: (artwork: Artwork | null) => void;
 }
@@ -108,7 +129,7 @@ export const ArtworkProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
   const { toast } = useToast();
 
-  const moveArtwork = (artworkId: string, newContainerId: string, containerType: "warehouse" | "table" | "stage") => {
+  const moveArtwork = (artworkId: string, newContainerId: string, containerType: "warehouse" | "etage" | "shelf" | "box") => {
     const container = locations.find(l => l.id === newContainerId);
     if (!container) return;
 
@@ -148,6 +169,10 @@ export const ArtworkProvider: React.FC<{ children: ReactNode }> = ({ children })
     return artworks.filter(artwork => artwork.containerId === containerId);
   };
 
+  const getChildLocations = (parentId: string) => {
+    return locations.filter(location => location.parentId === parentId);
+  };
+
   return (
     <ArtworkContext.Provider
       value={{
@@ -158,6 +183,7 @@ export const ArtworkProvider: React.FC<{ children: ReactNode }> = ({ children })
         getLocationName,
         getArtworksByLocation,
         getArtworksByContainer,
+        getChildLocations,
         selectedArtwork,
         setSelectedArtwork
       }}

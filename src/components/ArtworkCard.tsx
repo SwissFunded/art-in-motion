@@ -9,9 +9,31 @@ interface ArtworkCardProps {
 }
 
 export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
-  const { getLocationName, setSelectedArtwork } = useArtwork();
+  const { getLocationName, setSelectedArtwork, getLocationById } = useArtwork();
 
   const containerName = getLocationName(artwork.containerId);
+  const container = getLocationById(artwork.containerId);
+  
+  // Generate the complete location path
+  const getLocationPath = () => {
+    let path = containerName;
+    let currentContainer = container;
+    
+    if (!currentContainer) return path;
+    
+    // Build path from bottom to top
+    while (currentContainer?.parentId) {
+      const parent = getLocationById(currentContainer.parentId);
+      if (parent) {
+        path = `${parent.name} > ${path}`;
+        currentContainer = parent;
+      } else {
+        break;
+      }
+    }
+    
+    return path;
+  };
 
   return (
     <Card 
@@ -26,10 +48,16 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
         <p className="text-sm text-gray-500">Year: {artwork.year}</p>
       </CardContent>
       <CardFooter className="pt-0 flex justify-between items-center">
-        <Badge variant={artwork.containerType === "warehouse" ? "outline" : 
-               (artwork.containerType === "table" ? "secondary" : "default")}>
-          {artwork.containerType}: {containerName}
-        </Badge>
+        <div>
+          <Badge variant={
+            artwork.containerType === "warehouse" ? "outline" : 
+            (artwork.containerType === "etage" ? "secondary" : 
+            artwork.containerType === "shelf" ? "default" : "outline")
+          }>
+            {artwork.containerType}: {containerName}
+          </Badge>
+          <p className="text-xs text-gray-500 mt-1">{getLocationPath()}</p>
+        </div>
       </CardFooter>
     </Card>
   );
