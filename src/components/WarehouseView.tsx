@@ -74,21 +74,21 @@ export const WarehouseView: React.FC = () => {
     }
   };
 
-  // Fixed: Get all artworks in a specific container and all its children
+  // Get all artworks in a specific container and all its children
   const getTotalArtworksInLocation = (locationId: string): number => {
-    // Check artworks that are directly in this container
-    const directArtworks = artworks.filter(a => a.containerId === locationId).length;
+    // Count artworks that are directly in this container
+    const directArtworks = artworks.filter(a => a.containerId === locationId);
     
     // Get all child locations
     const childLocations = getChildLocations(locationId);
     
     // For each child location, count their artworks recursively
-    const childArtworks = childLocations.reduce((sum, child) => {
+    const childArtworksCount = childLocations.reduce((sum, child) => {
       return sum + getTotalArtworksInLocation(child.id);
     }, 0);
     
     // Return the total count
-    return directArtworks + childArtworks;
+    return directArtworks.length + childArtworksCount;
   };
 
   const renderLocationCard = (location: Location) => {
@@ -110,7 +110,7 @@ export const WarehouseView: React.FC = () => {
 
     return (
       <motion.div
-        key={location.id} // Fixed: Added key prop to motion.div
+        key={location.id}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -189,6 +189,7 @@ export const WarehouseView: React.FC = () => {
           ) : (
             boxes.map(box => renderLocationCard(box))
           )}
+          {renderLocationCard(shelf)}
         </div>
       );
     }
@@ -210,6 +211,7 @@ export const WarehouseView: React.FC = () => {
           ) : (
             shelves.map(shelf => renderLocationCard(shelf))
           )}
+          {renderLocationCard(etage)}
         </div>
       );
     }
@@ -226,6 +228,7 @@ export const WarehouseView: React.FC = () => {
         ) : (
           etages.map(etage => renderLocationCard(etage))
         )}
+        {renderLocationCard(warehouse!)}
       </div>
     );
   };
@@ -263,4 +266,3 @@ export const WarehouseView: React.FC = () => {
     </div>
   );
 };
-
