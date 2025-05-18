@@ -74,10 +74,29 @@ export const WarehouseView: React.FC = () => {
     }
   };
 
+  // Get all artworks in a location and its child locations recursively
+  const getTotalArtworksInLocation = (locationId: string): number => {
+    // Get artworks directly in this location
+    const directArtworks = getArtworksByContainer(locationId).length;
+    
+    // Get child locations
+    const children = getChildLocations(locationId);
+    
+    // Sum up artworks in all child locations recursively
+    const childArtworks = children.reduce((sum, child) => {
+      return sum + getTotalArtworksInLocation(child.id);
+    }, 0);
+    
+    // Return total count
+    return directArtworks + childArtworks;
+  };
+
   const renderLocationCard = (location: Location) => {
     const artworksInContainer = getArtworksByContainer(location.id);
     const childLocations = getChildLocations(location.id);
     const hasChildren = childLocations.length > 0;
+    // Get total artwork count (direct + in children)
+    const totalArtworks = getTotalArtworksInLocation(location.id);
 
     // Translations for location types
     const getLocationTypeLabel = (type: string, count: number = 1) => {
@@ -109,7 +128,7 @@ export const WarehouseView: React.FC = () => {
               {hasChildren && (
                 <Badge variant="outline">{childLocations.length} {getLocationTypeLabel(location.type, childLocations.length)}</Badge>
               )}
-              <Badge>{artworksInContainer.length} Kunstwerk{artworksInContainer.length !== 1 ? 'e' : ''}</Badge>
+              <Badge>{totalArtworks} Kunstwerk{totalArtworks !== 1 ? 'e' : ''}</Badge>
             </div>
           </CardHeader>
           <CardContent>
