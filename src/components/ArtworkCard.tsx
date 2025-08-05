@@ -50,27 +50,28 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
       transition={{ duration: 0.2 }}
     >
       <Card 
-        className="cursor-pointer hover:shadow-md transition-shadow duration-200"
+        className="cursor-pointer hover:shadow-md transition-all duration-200 active:scale-[0.98] border-border bg-card"
         onClick={() => setSelectedArtwork(artwork)}
       >
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">{artwork.name}</CardTitle>
+        <CardHeader className="pb-3 px-4 py-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg text-card-foreground line-clamp-2">{artwork.name}</CardTitle>
         </CardHeader>
-        <CardContent className="pb-2">
-          <p className="text-sm text-gray-500">Künstler: {artwork.artist}</p>
-          <p className="text-sm text-gray-500">Jahr: {artwork.year}</p>
+        <CardContent className="pb-3 px-4 sm:px-6">
+          <p className="text-sm text-muted-foreground">Künstler: {artwork.artist}</p>
+          <p className="text-sm text-muted-foreground">Jahr: {artwork.year}</p>
         </CardContent>
-        <CardFooter className="pt-0 flex justify-between items-center">
-          <div>
-            <Badge variant={
+        <CardFooter className="pt-0 px-4 pb-4 sm:px-6 flex flex-col items-start gap-2">
+          <Badge 
+            variant={
               artwork.containerType === "warehouse" ? "outline" : 
               (artwork.containerType === "etage" ? "secondary" : 
               artwork.containerType === "shelf" ? "default" : "outline")
-            }>
-              {containerTypeTranslations[artwork.containerType] || artwork.containerType}: {containerName}
-            </Badge>
-            <p className="text-xs text-gray-500 mt-1">{getLocationPath()}</p>
-          </div>
+            }
+            className="text-xs"
+          >
+            {containerTypeTranslations[artwork.containerType] || artwork.containerType}: {containerName}
+          </Badge>
+          <p className="text-xs text-muted-foreground line-clamp-2 w-full">{getLocationPath()}</p>
         </CardFooter>
       </Card>
     </motion.div>

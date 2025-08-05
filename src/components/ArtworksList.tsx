@@ -26,9 +26,9 @@ export const ArtworksList: React.FC = () => {
       transition={{ duration: 0.5 }}
       className="w-full"
     >
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold mb-4 md:mb-0">Kunstwerke</h1>
-        <div className="max-w-xs">
+      <div className="flex flex-col gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kunstwerke</h1>
+        <div className="w-full">
           <Label htmlFor="search" className="sr-only">Suche</Label>
           <Input
             id="search"
@@ -36,7 +36,7 @@ export const ArtworksList: React.FC = () => {
             placeholder="Nach Name oder Künstler suchen..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
+            className="w-full h-11 text-base"
           />
         </div>
       </div>
@@ -47,12 +47,12 @@ export const ArtworksList: React.FC = () => {
       />
 
       {filteredArtworks.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          Keine Kunstwerke gefunden, die Ihren Kriterien entsprechen.
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-base">Keine Kunstwerke gefunden, die Ihren Kriterien entsprechen.</p>
         </div>
       ) : (
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
           initial="hidden"
           animate="visible"
           variants={{
