@@ -48,30 +48,36 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
     <motion.div
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
+      className="h-full"
     >
       <Card 
-        className="cursor-pointer hover:shadow-md transition-all duration-200 active:scale-[0.98] border-border bg-card"
+        className="cursor-pointer transition-all duration-200 active:scale-[0.98] border-border/50 hover:border-border hover:shadow-ios bg-card/50 backdrop-blur-sm h-full flex flex-col"
         onClick={() => setSelectedArtwork(artwork)}
       >
-        <CardHeader className="pb-3 px-4 py-4 sm:px-6">
-          <CardTitle className="text-base sm:text-lg text-card-foreground line-clamp-2">{artwork.name}</CardTitle>
+        <CardHeader className="p-5 flex-1">
+          <CardTitle className="text-lg font-semibold text-card-foreground line-clamp-2 mb-3">
+            {artwork.name}
+          </CardTitle>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">Künstler:</span> {artwork.artist}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">Jahr:</span> {artwork.year}
+            </p>
+          </div>
         </CardHeader>
-        <CardContent className="pb-3 px-4 sm:px-6">
-          <p className="text-sm text-muted-foreground">Künstler: {artwork.artist}</p>
-          <p className="text-sm text-muted-foreground">Jahr: {artwork.year}</p>
-        </CardContent>
-        <CardFooter className="pt-0 px-4 pb-4 sm:px-6 flex flex-col items-start gap-2">
-          <Badge 
-            variant={
-              artwork.containerType === "warehouse" ? "outline" : 
-              (artwork.containerType === "etage" ? "secondary" : 
-              artwork.containerType === "shelf" ? "default" : "outline")
-            }
-            className="text-xs"
-          >
-            {containerTypeTranslations[artwork.containerType] || artwork.containerType}: {containerName}
-          </Badge>
-          <p className="text-xs text-muted-foreground line-clamp-2 w-full">{getLocationPath()}</p>
+        <CardFooter className="p-5 pt-0 space-y-3">
+          <div className="w-full">
+            <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-medium">
+              {containerTypeTranslations[artwork.containerType] || artwork.containerType}
+            </Badge>
+          </div>
+          <div className="w-full">
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+              📍 {getLocationPath()}
+            </p>
+          </div>
         </CardFooter>
       </Card>
     </motion.div>

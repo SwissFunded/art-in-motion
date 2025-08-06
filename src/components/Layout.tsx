@@ -16,23 +16,38 @@ export const Layout: React.FC = () => {
       transition={{ duration: 0.6 }}
       className="min-h-screen bg-background"
     >
-      <div className="container mx-auto py-4 px-3 sm:py-8 sm:px-4">
-        <motion.div 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          className="mb-6 sm:mb-8"
-        >
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground">Kunstwerk-Organizer</h1>
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Verwalten und organisieren Sie Ihre physischen Kunstwerke in Lagerhäusern, Etagen, Regalen und Boxen.
-          </p>
-        </motion.div>
-        
+      {/* iOS-style header section */}
+      <div className="bg-background border-b border-border/50 sticky top-0 z-50 backdrop-blur-lg bg-background/80">
+        <div className="container mx-auto px-4 py-6">
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+          >
+            <h1 className="text-3xl font-bold text-foreground mb-1">Kunstwerk-Organizer</h1>
+            <p className="text-muted-foreground text-base">
+              Verwalten Sie Ihre Kunstsammlung
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Content area */}
+      <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6 h-11 sm:h-10">
-            <TabsTrigger value="warehouses" className="text-sm sm:text-base">Lagerhäuser</TabsTrigger>
-            <TabsTrigger value="artworks" className="text-sm sm:text-base">Alle Kunstwerke</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-8 h-12 p-1 bg-muted rounded-xl">
+            <TabsTrigger 
+              value="warehouses" 
+              className="text-sm font-medium rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground"
+            >
+              Lagerhäuser
+            </TabsTrigger>
+            <TabsTrigger 
+              value="artworks" 
+              className="text-sm font-medium rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground"
+            >
+              Alle Kunstwerke
+            </TabsTrigger>
           </TabsList>
         
           <TabsContent value="warehouses" className="mt-0">

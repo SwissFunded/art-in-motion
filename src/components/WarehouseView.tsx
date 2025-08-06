@@ -116,46 +116,55 @@ export const WarehouseView: React.FC = () => {
         transition={{ duration: 0.3 }}
       >
         <Card 
-          className="mb-3 sm:mb-4 cursor-pointer hover:bg-accent/50 transition-colors border-border active:scale-[0.98] transition-transform"
+          className="mb-4 cursor-pointer transition-all duration-200 border-border/50 hover:border-border hover:shadow-ios active:scale-[0.98] bg-card/50 backdrop-blur-sm"
           onClick={() => handleLocationClick(location)}
         >
-          <CardHeader className="pb-2 px-4 py-3 sm:px-6 sm:py-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <CardTitle className="text-base sm:text-lg flex items-center text-foreground">
-                {renderLocationIcon(location.type)}
-                <span className="ml-2 truncate">{location.name}</span>
-              </CardTitle>
-              <div className="flex flex-wrap gap-1 sm:gap-2">
-                {hasChildren && (
-                  <Badge variant="outline" className="text-xs sm:text-sm">
-                    {childLocations.length} {getLocationTypeLabel(location.type, childLocations.length)}
-                  </Badge>
-                )}
-                <Badge className="text-xs sm:text-sm bg-primary text-primary-foreground">
-                  {totalArtworks} Kunstwerk{totalArtworks !== 1 ? 'e' : ''}
-                </Badge>
+          <CardHeader className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  {renderLocationIcon(location.type)}
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-semibold text-foreground mb-1">
+                    {location.name}
+                  </CardTitle>
+                  {hasChildren && (
+                    <p className="text-sm text-muted-foreground">
+                      {childLocations.length} {getLocationTypeLabel(location.type, childLocations.length)}
+                    </p>
+                  )}
+                </div>
               </div>
+              <Badge className="bg-primary/10 text-primary border-primary/20 font-medium">
+                {totalArtworks}
+              </Badge>
             </div>
           </CardHeader>
-          <CardContent className="px-4 py-3 sm:px-6 sm:py-4 pt-0">
+          <CardContent className="p-5 pt-0">
             {artworksInContainer.length === 0 ? (
-              <p className="text-xs sm:text-sm text-muted-foreground">Keine Kunstwerke direkt hier gelagert.</p>
+              <p className="text-sm text-muted-foreground">Keine Kunstwerke direkt hier gelagert</p>
             ) : (
-              <ul className="space-y-2">
-                {artworksInContainer.map(artwork => (
-                  <li 
+              <div className="space-y-2">
+                {artworksInContainer.slice(0, 3).map(artwork => (
+                  <div 
                     key={artwork.id}
-                    className="text-xs sm:text-sm p-3 bg-accent/30 rounded-md hover:bg-accent/50 cursor-pointer transition-colors active:scale-[0.98] border border-border/30"
+                    className="p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer active:scale-[0.98]"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedArtwork(artwork);
                     }}
                   >
-                    <div className="font-medium text-foreground truncate">{artwork.name}</div>
-                    <div className="text-muted-foreground truncate">{artwork.artist}</div>
-                  </li>
+                    <div className="font-medium text-foreground text-sm mb-1">{artwork.name}</div>
+                    <div className="text-muted-foreground text-xs">{artwork.artist}</div>
+                  </div>
                 ))}
-              </ul>
+                {artworksInContainer.length > 3 && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    +{artworksInContainer.length - 3} weitere Kunstwerke
+                  </p>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -170,10 +179,14 @@ export const WarehouseView: React.FC = () => {
       if (!box) return <div>Box nicht gefunden</div>;
       return (
         <div>
-          <Button variant="outline" onClick={navigateBack} className="mb-4 w-full sm:w-auto h-11 text-sm">
+          <Button 
+            variant="outline" 
+            onClick={navigateBack} 
+            className="mb-6 w-full sm:w-auto h-11 text-sm border-border/50 hover:bg-muted"
+          >
             <ArrowLeft className="mr-2" size={16} /> Zurück zum Regal
           </Button>
-          <h2 className="text-base sm:text-lg font-medium mb-4 text-foreground">{box.name} Inhalt</h2>
+          <h2 className="section-header">{box.name.toUpperCase()} INHALT</h2>
           {renderLocationCard(box)}
         </div>
       );
@@ -245,8 +258,13 @@ export const WarehouseView: React.FC = () => {
   }
 
   return (
-    <div className="w-full">
-      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-foreground">Lagerhaus-Organisation</h1>
+    <div className="w-full space-y-6">
+      {/* Section Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="section-header">LAGERHAUS-ORGANISATION</h2>
+        </div>
+      </div>
       
       <Tabs 
         value={selectedWarehouse} 
@@ -256,12 +274,12 @@ export const WarehouseView: React.FC = () => {
         }}
         className="w-full"
       >
-        <TabsList className="mb-4 h-auto min-h-10 p-1 grid w-full" style={{ gridTemplateColumns: `repeat(${warehouses.length}, 1fr)` }}>
+        <TabsList className="mb-6 h-12 p-1 grid w-full bg-muted rounded-xl" style={{ gridTemplateColumns: `repeat(${warehouses.length}, 1fr)` }}>
           {warehouses.map(warehouse => (
             <TabsTrigger 
               key={warehouse.id} 
               value={warehouse.id}
-              className="text-xs sm:text-sm px-2 py-2 sm:px-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="text-sm font-medium px-3 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground"
             >
               {warehouse.name}
             </TabsTrigger>

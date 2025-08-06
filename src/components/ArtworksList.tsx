@@ -24,21 +24,24 @@ export const ArtworksList: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full"
+      className="w-full space-y-6"
     >
-      <div className="flex flex-col gap-4 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kunstwerke</h1>
-        <div className="w-full">
-          <Label htmlFor="search" className="sr-only">Suche</Label>
-          <Input
-            id="search"
-            type="text"
-            placeholder="Nach Name oder Künstler suchen..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 text-base"
-          />
-        </div>
+      {/* Section Header */}
+      <div>
+        <h2 className="section-header">ALLE KUNSTWERKE</h2>
+      </div>
+
+      {/* Search Bar */}
+      <div className="w-full">
+        <Label htmlFor="search" className="sr-only">Suche</Label>
+        <Input
+          id="search"
+          type="text"
+          placeholder="Nach Name oder Künstler suchen..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full h-12 text-base bg-muted/50 border-border/50 rounded-xl"
+        />
       </div>
 
       <LocationFilter 
@@ -52,7 +55,7 @@ export const ArtworksList: React.FC = () => {
         </div>
       ) : (
         <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
           initial="hidden"
           animate="visible"
           variants={{
