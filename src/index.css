@@ -129,6 +129,24 @@
     border: 1px solid hsl(var(--border) / 0.2);
   }
 
+  /* Animated liquid glass surface */
+  .liquid-glass {
+    position: relative;
+    background: hsl(var(--background) / 0.6);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    overflow: hidden;
+  }
+
+  .liquid-glass::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: radial-gradient(circle at center, hsl(var(--primary) / 0.25), transparent 70%);
+    animation: liquid-glass 12s ease-in-out infinite;
+    pointer-events: none;
+  }
+
   /* Subtle shadows for depth */
   .shadow-ios {
     box-shadow: 0 2px 16px hsl(var(--foreground) / 0.08);
@@ -141,6 +159,18 @@
   /* iOS-style section headers */
   .section-header {
     @apply text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3;
+  }
+}
+
+@keyframes liquid-glass {
+  0% {
+    transform: translate(-10%, -10%) rotate(0deg);
+  }
+  50% {
+    transform: translate(10%, 10%) rotate(180deg);
+  }
+  100% {
+    transform: translate(-10%, -10%) rotate(360deg);
   }
 }
 

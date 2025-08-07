@@ -17,7 +17,7 @@ export const Layout: React.FC = () => {
       className="min-h-screen bg-background"
     >
       {/* iOS-style header section */}
-      <div className="bg-background border-b border-border/50 sticky top-0 z-50 backdrop-blur-lg bg-background/80">
+        <div className="liquid-glass border-b border-border/50 sticky top-0 z-50 shadow-ios-lg">
         <div className="container mx-auto px-4 py-6">
           <motion.div 
             initial={{ y: -20, opacity: 0 }}
@@ -35,27 +35,41 @@ export const Layout: React.FC = () => {
       {/* Content area */}
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 h-12 p-1 bg-muted rounded-xl">
-            <TabsTrigger 
-              value="warehouses" 
-              className="text-sm font-medium rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground"
+          <TabsList className="liquid-glass grid w-full grid-cols-2 mb-8 h-12 p-1 rounded-xl shadow-ios">
+            <TabsTrigger
+              value="warehouses"
+              className="text-sm font-medium rounded-lg transition-all duration-300 data-[state=active]:liquid-glass data-[state=active]:shadow-ios-lg data-[state=active]:text-foreground"
             >
               Lagerhäuser
             </TabsTrigger>
-            <TabsTrigger 
-              value="artworks" 
-              className="text-sm font-medium rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground"
+            <TabsTrigger
+              value="artworks"
+              className="text-sm font-medium rounded-lg transition-all duration-300 data-[state=active]:liquid-glass data-[state=active]:shadow-ios-lg data-[state=active]:text-foreground"
             >
               Alle Kunstwerke
             </TabsTrigger>
           </TabsList>
-        
+
           <TabsContent value="warehouses" className="mt-0">
-            <WarehouseView />
+            <motion.div
+              key="warehouses"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <WarehouseView />
+            </motion.div>
           </TabsContent>
-          
+
           <TabsContent value="artworks" className="mt-0">
-            <ArtworksList />
+            <motion.div
+              key="artworks"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <ArtworksList />
+            </motion.div>
           </TabsContent>
         </Tabs>
       </div>
