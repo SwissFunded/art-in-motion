@@ -9,21 +9,20 @@ import { motion } from "framer-motion";
 
 interface MoveArtworkFormProps {
   artworkId: string;
+  onComplete?: () => void;
 }
 
-export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) => {
+export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId, onComplete }) => {
   const { locations, moveArtwork } = useArtwork();
   
   const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(null);
   const [selectedEtage, setSelectedEtage] = useState<string | null>(null);
-  const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
-  const [containerType, setContainerType] = useState<"warehouse" | "etage" | "shelf" | "box">("box");
+  const [containerType, setContainerType] = useState<"warehouse" | "etage" | "box">("warehouse");
   
   const warehouses = locations.filter(location => location.type === "warehouse");
   const etages = locations.filter(location => location.type === "etage" && location.parentId === selectedWarehouse);
-  const shelves = locations.filter(location => location.type === "shelf" && location.parentId === selectedEtage);
-  const boxes = locations.filter(location => location.type === "box" && location.parentId === selectedShelf);
+  const boxes = locations.filter(location => location.type === "box" && location.parentId === selectedEtage);
 
   const handleMoveArtwork = () => {
     let targetContainerId: string | null = null;
@@ -35,9 +34,6 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
       case "etage":
         targetContainerId = selectedEtage;
         break;
-      case "shelf":
-        targetContainerId = selectedShelf;
-        break;
       case "box":
         targetContainerId = selectedBox;
         break;
@@ -45,6 +41,7 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
     
     if (targetContainerId) {
       moveArtwork(artworkId, targetContainerId, containerType);
+      onComplete?.();
     }
   };
 
@@ -52,7 +49,6 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
     switch (containerType) {
       case "warehouse": return !selectedWarehouse;
       case "etage": return !selectedEtage;
-      case "shelf": return !selectedShelf;
       case "box": return !selectedBox;
       default: return true;
     }
@@ -60,11 +56,10 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
 
   // Translations for tabs
   const containerTypeLabels = {
-    "box": "Box",
-    "shelf": "Regal",
+    "warehouse": "Lagerhaus",
     "etage": "Etage",
-    "warehouse": "Lagerhaus"
-  };
+    "box": "Box"
+  } as const;
 
   return (
     <motion.div
@@ -73,19 +68,18 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
       transition={{ duration: 0.4 }}
     >
       <Card>
-        <CardContent className="p-4">
-          <Tabs defaultValue="box" onValueChange={(value) => setContainerType(value as any)} className="w-full">
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="box">{containerTypeLabels.box}</TabsTrigger>
-              <TabsTrigger value="shelf">{containerTypeLabels.shelf}</TabsTrigger>
-              <TabsTrigger value="etage">{containerTypeLabels.etage}</TabsTrigger>
-              <TabsTrigger value="warehouse">{containerTypeLabels.warehouse}</TabsTrigger>
+        <CardContent className="p-3 sm:p-4">
+          <Tabs defaultValue="warehouse" onValueChange={(value) => setContainerType(value as any)} className="w-full">
+            <TabsList className="grid grid-cols-3 mb-4 h-10 sm:h-11">
+              <TabsTrigger value="warehouse" className="text-xs sm:text-sm">{containerTypeLabels.warehouse}</TabsTrigger>
+              <TabsTrigger value="etage" className="text-xs sm:text-sm">{containerTypeLabels.etage}</TabsTrigger>
+              <TabsTrigger value="box" className="text-xs sm:text-sm">{containerTypeLabels.box}</TabsTrigger>
             </TabsList>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
                 <p className="text-sm mb-2">Lagerhaus auswählen:</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {warehouses.map(warehouse => (
                     <Button
                       key={warehouse.id}
@@ -94,10 +88,9 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
                       onClick={() => {
                         setSelectedWarehouse(warehouse.id);
                         setSelectedEtage(null);
-                        setSelectedShelf(null);
                         setSelectedBox(null);
                       }}
-                      className="justify-start"
+                      className="justify-start h-10 touch-manipulation"
                     >
                       {warehouse.name}
                     </Button>
@@ -105,14 +98,14 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
                 </div>
               </div>
 
-              {(containerType === "etage" || containerType === "shelf" || containerType === "box") && selectedWarehouse && (
+              {(containerType === "etage" || containerType === "box") && selectedWarehouse && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   transition={{ duration: 0.3 }}
                 >
                   <p className="text-sm mb-2">Etage auswählen:</p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {etages.length > 0 ? etages.map(etage => (
                       <Button
                         key={etage.id}
@@ -120,10 +113,9 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
                         size="sm"
                         onClick={() => {
                           setSelectedEtage(etage.id);
-                          setSelectedShelf(null);
                           setSelectedBox(null);
                         }}
-                        className="justify-start"
+                        className="justify-start h-10 touch-manipulation"
                       >
                         {etage.name}
                       </Button>
@@ -132,61 +124,37 @@ export const MoveArtworkForm: React.FC<MoveArtworkFormProps> = ({ artworkId }) =
                 </motion.div>
               )}
 
-              {(containerType === "shelf" || containerType === "box") && selectedEtage && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <p className="text-sm mb-2">Regal auswählen:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {shelves.length > 0 ? shelves.map(shelf => (
-                      <Button
-                        key={shelf.id}
-                        variant={selectedShelf === shelf.id ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setSelectedShelf(shelf.id);
-                          setSelectedBox(null);
-                        }}
-                        className="justify-start"
-                      >
-                        {shelf.name}
-                      </Button>
-                    )) : <p className="text-gray-500 text-sm">Keine Regale in dieser Etage gefunden</p>}
-                  </div>
-                </motion.div>
-              )}
-
-              {containerType === "box" && selectedShelf && (
+              {(containerType === "box") && selectedEtage && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   transition={{ duration: 0.3 }}
                 >
                   <p className="text-sm mb-2">Box auswählen:</p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {boxes.length > 0 ? boxes.map(box => (
                       <Button
                         key={box.id}
                         variant={selectedBox === box.id ? "default" : "outline"}
                         size="sm"
                         onClick={() => setSelectedBox(box.id)}
-                        className="justify-start"
+                        className="justify-start h-10 touch-manipulation"
                       >
                         {box.name}
                       </Button>
-                    )) : <p className="text-gray-500 text-sm">Keine Boxen in diesem Regal gefunden</p>}
+                    )) : <p className="text-gray-500 text-sm">Keine Boxen in dieser Etage gefunden</p>}
                   </div>
                 </motion.div>
               )}
+
+              {/* Shelf step removed from UI */}
             </div>
 
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <Button 
                 disabled={isNextStepDisabled()} 
                 onClick={handleMoveArtwork} 
-                className="w-full"
+                className="w-full h-11 touch-manipulation"
               >
                 Kunstwerk verschieben <ArrowRight className="ml-2" size={16} />
               </Button>

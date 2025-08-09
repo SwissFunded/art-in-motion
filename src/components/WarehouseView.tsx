@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Box, Warehouse, FolderOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BoxArtworkView } from "./BoxArtworkView";
 import { motion } from "framer-motion";
+import { QRCodeScanner } from "./QRCodeScanner";
 
 export const WarehouseView: React.FC = () => {
   const { locations, getArtworksByContainer, setSelectedArtwork, getChildLocations, artworks } = useArtwork();
@@ -14,7 +16,6 @@ export const WarehouseView: React.FC = () => {
   const [currentView, setCurrentView] = useState<{
     warehouseId: string;
     etageId?: string;
-    shelfId?: string;
     boxId?: string;
   }>({ warehouseId: selectedWarehouse });
 
@@ -29,18 +30,10 @@ export const WarehouseView: React.FC = () => {
       case "etage":
         setCurrentView({ warehouseId: currentView.warehouseId, etageId: location.id });
         break;
-      case "shelf":
-        setCurrentView({ 
-          warehouseId: currentView.warehouseId, 
-          etageId: currentView.etageId, 
-          shelfId: location.id 
-        });
-        break;
       case "box":
         setCurrentView({ 
           warehouseId: currentView.warehouseId, 
           etageId: currentView.etageId, 
-          shelfId: currentView.shelfId, 
           boxId: location.id 
         });
         break;
@@ -51,13 +44,7 @@ export const WarehouseView: React.FC = () => {
     if (currentView.boxId) {
       setCurrentView({ 
         warehouseId: currentView.warehouseId, 
-        etageId: currentView.etageId, 
-        shelfId: currentView.shelfId 
-      });
-    } else if (currentView.shelfId) {
-      setCurrentView({ 
-        warehouseId: currentView.warehouseId, 
-        etageId: currentView.etageId 
+        etageId: currentView.etageId
       });
     } else if (currentView.etageId) {
       setCurrentView({ warehouseId: currentView.warehouseId });
@@ -68,7 +55,6 @@ export const WarehouseView: React.FC = () => {
     switch(locationType) {
       case "warehouse": return <Warehouse size={18} />;
       case "etage": return <FolderOpen size={18} />;
-      case "shelf": return <FolderOpen size={18} />;
       case "box": return <Box size={18} />;
       default: return <Box size={18} />;
     }
@@ -98,12 +84,11 @@ export const WarehouseView: React.FC = () => {
     // Get total artwork count (direct + in children)
     const totalArtworks = getTotalArtworksInLocation(location.id);
 
-    // Translations for location types
+    // Translations for child count
     const getLocationTypeLabel = (type: string, count: number = 1) => {
       switch(type) {
-        case "warehouse": return count > 1 ? "Etagen" : "Etage";
-        case "etage": return count > 1 ? "Regale" : "Regal";
-        case "shelf": return count > 1 ? "Boxen" : "Box";
+        case "warehouse": return count === 1 ? "Etage" : "Etagen";
+        case "etage": return count === 1 ? "Box" : "Boxen";
         default: return type;
       }
     };
@@ -111,37 +96,37 @@ export const WarehouseView: React.FC = () => {
     return (
       <motion.div
         key={location.id}
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
       >
         <Card 
-          className="mb-4 cursor-pointer transition-all duration-200 border-border/50 hover:border-border hover:shadow-ios active:scale-[0.98] bg-card/50 backdrop-blur-sm"
+          className="mb-3 sm:mb-4 cursor-pointer transition-all duration-300 ease-out border-border/50 hover:border-border hover:shadow-ios active:scale-[0.98] bg-card/50 backdrop-blur-sm"
           onClick={() => handleLocationClick(location)}
         >
-          <CardHeader className="p-5">
+          <CardHeader className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-primary/10">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                   {renderLocationIcon(location.type)}
                 </div>
-                <div>
-                  <CardTitle className="text-lg font-semibold text-foreground mb-1">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-lg font-semibold text-foreground mb-1 truncate">
                     {location.name}
                   </CardTitle>
                   {hasChildren && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {childLocations.length} {getLocationTypeLabel(location.type, childLocations.length)}
                     </p>
                   )}
                 </div>
               </div>
-              <Badge className="bg-primary/10 text-primary border-primary/20 font-medium">
+              <Badge className="bg-primary/10 text-primary border-primary/20 font-medium text-xs sm:text-sm shrink-0 ml-2">
                 {totalArtworks}
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="p-5 pt-0">
+          <CardContent className="p-4 sm:p-5 pt-0">
             {artworksInContainer.length === 0 ? (
               <p className="text-sm text-muted-foreground">Keine Kunstwerke direkt hier gelagert</p>
             ) : (
@@ -149,14 +134,14 @@ export const WarehouseView: React.FC = () => {
                 {artworksInContainer.slice(0, 3).map(artwork => (
                   <div 
                     key={artwork.id}
-                    className="p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer active:scale-[0.98]"
+                    className="p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer active:scale-[0.98] min-w-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedArtwork(artwork);
                     }}
                   >
-                    <div className="font-medium text-foreground text-sm mb-1">{artwork.name}</div>
-                    <div className="text-muted-foreground text-xs">{artwork.artist}</div>
+                    <div className="font-medium text-foreground text-sm mb-1 truncate">{artwork.name}</div>
+                    <div className="text-muted-foreground text-xs truncate">{artwork.artist}</div>
                   </div>
                 ))}
                 {artworksInContainer.length > 3 && (
@@ -174,64 +159,33 @@ export const WarehouseView: React.FC = () => {
 
   const renderHierarchicalView = () => {
     if (currentView.boxId) {
-      // Box view - show artworks in this box
-      const box = locations.find(l => l.id === currentView.boxId);
-      if (!box) return <div>Box nicht gefunden</div>;
+      // Box view - show artworks in this box using the new component
       return (
-        <div>
-          <Button 
-            variant="outline" 
-            onClick={navigateBack} 
-            className="mb-6 w-full sm:w-auto h-11 text-sm border-border/50 hover:bg-muted"
-          >
-            <ArrowLeft className="mr-2" size={16} /> Zurück zum Regal
-          </Button>
-          <h2 className="section-header">{box.name.toUpperCase()} INHALT</h2>
-          {renderLocationCard(box)}
-        </div>
-      );
-    }
-    
-    if (currentView.shelfId) {
-      // Shelf view - show boxes in this shelf
-      const shelf = locations.find(l => l.id === currentView.shelfId);
-      if (!shelf) return <div>Regal nicht gefunden</div>;
-      const boxes = getChildLocations(currentView.shelfId);
-
-      return (
-        <div>
-          <Button variant="outline" onClick={navigateBack} className="mb-4 w-full sm:w-auto h-11 text-sm">
-            <ArrowLeft className="mr-2" size={16} /> Zurück zur Etage
-          </Button>
-          <h2 className="text-base sm:text-lg font-medium mb-4 text-foreground">{shelf.name} Boxen</h2>
-          {boxes.length === 0 ? (
-            <p className="text-gray-500">Keine Boxen in diesem Regal.</p>
-          ) : (
-            boxes.map(box => renderLocationCard(box))
-          )}
-          {renderLocationCard(shelf)}
-        </div>
+        <BoxArtworkView 
+          boxId={currentView.boxId} 
+          onBack={navigateBack}
+        />
       );
     }
     
     if (currentView.etageId) {
-      // Etage view - show shelves in this etage
+      // Etage view - show boxes directly in this etage
       const etage = locations.find(l => l.id === currentView.etageId);
       if (!etage) return <div>Etage nicht gefunden</div>;
-      const shelves = getChildLocations(currentView.etageId);
+      const boxes = getChildLocations(currentView.etageId);
 
       return (
         <div>
-          <Button variant="outline" onClick={navigateBack} className="mb-4 w-full sm:w-auto h-11 text-sm">
+          <Button variant="outline" onClick={navigateBack} className="mb-4 w-full sm:w-auto h-11 text-sm touch-manipulation">
             <ArrowLeft className="mr-2" size={16} /> Zurück zum Lagerhaus
           </Button>
-          <h2 className="text-base sm:text-lg font-medium mb-4 text-foreground">{etage.name} Regale</h2>
-          {shelves.length === 0 ? (
-            <p className="text-gray-500">Keine Regale in dieser Etage.</p>
+          <h2 className="text-lg sm:text-xl font-medium mb-4 text-foreground">{etage.name} Boxen</h2>
+          {boxes.length === 0 ? (
+            <p className="text-gray-500">Keine Boxen in dieser Etage.</p>
           ) : (
-            shelves.map(shelf => renderLocationCard(shelf))
+            boxes.map(box => renderLocationCard(box))
           )}
-          {renderLocationCard(etage)}
+          {/* Do not render the selected etage card again */}
         </div>
       );
     }
@@ -242,13 +196,18 @@ export const WarehouseView: React.FC = () => {
     
     return (
       <div>
-        <h2 className="text-base sm:text-lg font-medium mb-4 text-foreground">{warehouse?.name} Etagen</h2>
+        <h2 className="text-lg sm:text-xl font-medium mb-4 text-foreground">{warehouse?.name} Etagen</h2>
         {etages.length === 0 ? (
           <p className="text-gray-500">Keine Etagen in diesem Lagerhaus.</p>
         ) : (
           etages.map(etage => renderLocationCard(etage))
         )}
-        {renderLocationCard(warehouse!)}
+
+        {/* QR Code Scanner Section */}
+        <div className="mt-6 sm:mt-8">
+          <QRCodeScanner title="Scan QR Code" />
+        </div>
+        {/* Do not render the selected warehouse card again */}
       </div>
     );
   };
@@ -258,11 +217,11 @@ export const WarehouseView: React.FC = () => {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4 sm:space-y-6">
       {/* Section Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="section-header">LAGERHAUS-ORGANISATION</h2>
+          <h2 className="text-lg sm:text-xl font-medium text-foreground">Standort</h2>
         </div>
       </div>
       
@@ -274,14 +233,14 @@ export const WarehouseView: React.FC = () => {
         }}
         className="w-full"
       >
-        <TabsList className="mb-6 h-12 p-1 grid w-full bg-muted rounded-xl" style={{ gridTemplateColumns: `repeat(${warehouses.length}, 1fr)` }}>
+        <TabsList className="mb-4 sm:mb-6 h-11 sm:h-12 p-1 grid w-full bg-muted rounded-xl overflow-x-auto" style={{ gridTemplateColumns: `repeat(${warehouses.length}, 1fr)` }}>
           {warehouses.map(warehouse => (
             <TabsTrigger 
               key={warehouse.id} 
               value={warehouse.id}
-              className="text-sm font-medium px-3 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground"
+              className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground whitespace-nowrap min-w-0"
             >
-              {warehouse.name}
+              <span className="truncate">{warehouse.name}</span>
             </TabsTrigger>
           ))}
         </TabsList>

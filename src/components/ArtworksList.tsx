@@ -23,7 +23,7 @@ export const ArtworksList: React.FC = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       className="w-full space-y-6"
     >
       {/* Section Header */}
@@ -37,7 +37,7 @@ export const ArtworksList: React.FC = () => {
         <Input
           id="search"
           type="text"
-          placeholder="Nach Name oder Künstler suchen..."
+          placeholder="Search by name or artist... (coming soon)"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full h-12 text-base bg-muted/50 border-border/50 rounded-xl"
@@ -61,7 +61,7 @@ export const ArtworksList: React.FC = () => {
           variants={{
             visible: {
               transition: {
-                staggerChildren: 0.1
+                staggerChildren: 0.08
               }
             }
           }}
@@ -70,8 +70,8 @@ export const ArtworksList: React.FC = () => {
             <motion.div
               key={artwork.id}
               variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+                hidden: { opacity: 0, y: 18 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } }
               }}
             >
               <ArtworkCard artwork={artwork} />

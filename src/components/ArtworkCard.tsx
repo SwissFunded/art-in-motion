@@ -40,34 +40,39 @@ export const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork }) => {
   const containerTypeTranslations: Record<string, string> = {
     "warehouse": "Lagerhaus",
     "etage": "Etage",
-    "shelf": "Regal",
     "box": "Box"
   };
 
   return (
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       className="h-full"
     >
       <Card 
-        className="cursor-pointer transition-all duration-200 active:scale-[0.98] border-border/50 hover:border-border hover:shadow-ios bg-card/50 backdrop-blur-sm h-full flex flex-col"
+        className="cursor-pointer transition-all duration-300 ease-out active:scale-[0.98] border-border/50 hover:border-border hover:shadow-ios bg-card/50 backdrop-blur-sm h-full flex flex-col touch-manipulation"
         onClick={() => setSelectedArtwork(artwork)}
       >
-        <CardHeader className="p-5 flex-1">
-          <CardTitle className="text-lg font-semibold text-card-foreground line-clamp-2 mb-3">
+        <CardHeader className="p-3 sm:p-5 flex-1">
+          <CardTitle className="text-base sm:text-lg font-semibold text-card-foreground line-clamp-2 mb-2 sm:mb-3">
             {artwork.name}
           </CardTitle>
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
+          <div className="space-y-1.5 sm:space-y-2">
+            <p className="text-xs text-muted-foreground font-mono truncate">
+              ID: {artwork.customId}
+            </p>
+            <p className="text-xs text-muted-foreground font-mono truncate">
+              Nr: {artwork.artworkNumber}
+            </p>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               <span className="font-medium">Künstler:</span> {artwork.artist}
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               <span className="font-medium">Jahr:</span> {artwork.year}
             </p>
           </div>
         </CardHeader>
-        <CardFooter className="p-5 pt-0 space-y-3">
+        <CardFooter className="p-3 sm:p-5 pt-0 space-y-2 sm:space-y-3">
           <div className="w-full">
             <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-medium">
               {containerTypeTranslations[artwork.containerType] || artwork.containerType}
