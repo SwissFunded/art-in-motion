@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { supabase, SUPABASE_TABLE } from "@/lib/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
 
 export interface Artwork {
@@ -314,10 +315,55 @@ interface ArtworkContextType {
 const ArtworkContext = createContext<ArtworkContextType | undefined>(undefined);
 
 export const ArtworkProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [artworks, setArtworks] = useState<Artwork[]>(initialArtworks);
-  const [locations] = useState<Location[]>(initialLocations);
+  const [artworks, setArtworks] = useState<Artwork[]>(initialArtworks.map(a => ({ ...a, image: undefined })));
+  const [locations, setLocations] = useState<Location[]>(initialLocations);
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data: locs, error: locErr } = await supabase
+          .from('locations')
+          .select('id,name,type,parentId');
+        if (!locErr && Array.isArray(locs) && locs.length) {
+          setLocations(locs as Location[]);
+        }
+
+        // Align to user's table schema: id, "Nummer", artist_name, location_raw, location_normalized, exhibitions
+        // We'll map these into our Artwork shape with sensible defaults
+        const { data: rows, error: artErr } = await supabase
+          .from(SUPABASE_TABLE)
+          .select('id, Nummer, artist_name, location_raw, location_normalized, exhibitions');
+        if (!artErr && Array.isArray(rows) && rows.length) {
+          const mapped: Artwork[] = rows.map((r: any, idx: number) => {
+            const customId = String(r.Nummer ?? r.id ?? idx + 1);
+            const locationNorm: string = r.location_normalized || r.location_raw || '';
+            // Try to resolve container by normalized name
+            const resolved = locations.find(l => l.name.toLowerCase() === locationNorm.toLowerCase());
+            const containerId = resolved?.id || 'b1';
+            const containerType = resolved?.type || 'box';
+            return {
+              id: String(r.id ?? customId),
+              customId: String(customId),
+              name: String(r.exhibitions || `Artwork ${customId}`),
+              artist: String(r.artist_name || 'Unknown Artist'),
+              year: new Date().getFullYear(),
+              artworkNumber: String(customId),
+              image: undefined,
+              locationId: resolved?.parentId || 'w1',
+              containerType: containerType as any,
+              containerId,
+            } as Artwork;
+          });
+          setArtworks(mapped);
+        }
+      } catch (e) {
+        // keep fallback
+      }
+    };
+    load();
+  }, []);
 
   const moveArtwork = (artworkId: string, newContainerId: string, containerType: "warehouse" | "etage" | "box") => {
     const container = locations.find(l => l.id === newContainerId);

@@ -9,12 +9,15 @@ import {
   DialogFooter 
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { MoveArtworkDialog } from "./MoveArtworkDialog";
+import { useState } from "react";
 
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 
 export const ArtworkDetailsModal: React.FC = () => {
   const { selectedArtwork, setSelectedArtwork, getLocationName } = useArtwork();
+  const [moveOpen, setMoveOpen] = useState(false);
 
   if (!selectedArtwork) return null;
 
@@ -73,7 +76,14 @@ export const ArtworkDetailsModal: React.FC = () => {
           </div>
           
         </motion.div>
-        <DialogFooter className="pt-4">
+        <DialogFooter className="pt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button 
+            variant="outline"
+            onClick={() => setMoveOpen(true)}
+            className="w-full sm:w-auto h-11"
+          >
+            Change Location
+          </Button>
           <Button 
             onClick={() => setSelectedArtwork(null)}
             className="w-full sm:w-auto touch-manipulation h-11"
@@ -82,6 +92,14 @@ export const ArtworkDetailsModal: React.FC = () => {
           </Button>
         </DialogFooter>
       </DialogContent>
+      {selectedArtwork && (
+        <MoveArtworkDialog 
+          isOpen={moveOpen} 
+          onClose={() => setMoveOpen(false)} 
+          artworkId={selectedArtwork.id}
+          artworkName={selectedArtwork.name}
+        />
+      )}
     </Dialog>
   );
 };

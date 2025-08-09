@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
+import { outline, boundingBox } from "@yudiel/react-qr-scanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,6 @@ export const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ title = "Scan QR C
             {title}
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge className="bg-primary/10 text-primary border-primary/20">Live</Badge>
             <Button
               variant="outline"
               size="sm"
@@ -104,9 +104,22 @@ export const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ title = "Scan QR C
       <CardContent className="pt-0">
         <div className="rounded-lg overflow-hidden border border-border/50 bg-muted/40">
           <Scanner
-            onDecode={handleDecode}
+            onScan={(detected) => {
+              // get the first decoded text value
+              const text = detected?.[0]?.rawValue ?? detected?.[0]?.content ?? "";
+              if (text) handleDecode(text);
+            }}
             onError={handleError}
             constraints={constraints as any}
+            components={{ finder: false, tracker: (codes, ctx) => {
+              // custom blue overlay
+              ctx.lineWidth = 4;
+              ctx.strokeStyle = "#1e66ff"; // blue
+              boundingBox(codes, ctx);
+              ctx.lineWidth = 2;
+              ctx.strokeStyle = "#80aaff"; // lighter blue
+              outline(codes, ctx);
+            }}}
             containerStyle={{ width: "100%" }}
             videoStyle={{ width: "100%", height: "auto", objectFit: "cover" }}
           />

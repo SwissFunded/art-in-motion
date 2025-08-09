@@ -13,6 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -50,11 +51,21 @@ const DEMO_USERS: Array<User & { password: string }> = [
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [users, setUsers] = useState<Array<User & { password: string }>>([]);
 
-  // Check for stored authentication on mount
+  // Initialize users and check for stored authentication on mount
   useEffect(() => {
-    const checkStoredAuth = () => {
+    const init = () => {
       try {
+        // bootstrap users
+        const storedUsers = localStorage.getItem("art-in-motion-users");
+        if (storedUsers) {
+          setUsers(JSON.parse(storedUsers));
+        } else {
+          localStorage.setItem("art-in-motion-users", JSON.stringify(DEMO_USERS));
+          setUsers(DEMO_USERS);
+        }
+
         const storedUser = localStorage.getItem("art-in-motion-user");
         if (storedUser) {
           const userData = JSON.parse(storedUser);
@@ -68,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     };
 
-    checkStoredAuth();
+    init();
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
@@ -78,8 +89,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Check demo users
-      const demoUser = DEMO_USERS.find(u => u.email === email && u.password === password);
+      // Check stored users
+      const allUsers: Array<User & { password: string }> = users.length ? users : DEMO_USERS;
+      const demoUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
       
       if (demoUser) {
         const { password: _, ...userWithoutPassword } = demoUser;
@@ -103,6 +115,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const current = (JSON.parse(localStorage.getItem("art-in-motion-users") || "null") as Array<User & { password: string }>) || DEMO_USERS;
+      const exists = current.some(u => u.email.toLowerCase() === email.toLowerCase());
+      if (exists) {
+        setIsLoading(false);
+        return { success: false, error: "Email already in use" };
+      }
+      const newUser: User & { password: string } = {
+        id: String(Date.now()),
+        email,
+        password,
+        name,
+        role: "user",
+        avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || email)}`
+      };
+      const updated = [...current, newUser];
+      localStorage.setItem("art-in-motion-users", JSON.stringify(updated));
+      setUsers(updated);
+
+      const { password: _pw, ...userWithoutPassword } = newUser;
+      setUser(userWithoutPassword);
+      localStorage.setItem("art-in-motion-user", JSON.stringify(userWithoutPassword));
+      setIsLoading(false);
+      return { success: true };
+    } catch (err) {
+      setIsLoading(false);
+      return { success: false, error: "Sign up failed. Please try again." };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("art-in-motion-user");
@@ -121,6 +166,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated: !!user,
     isLoading,
     login,
+    register,
     logout,
     updateUser
   };

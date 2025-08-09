@@ -8,7 +8,7 @@ import { Box, Warehouse, FolderOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BoxArtworkView } from "./BoxArtworkView";
 import { motion } from "framer-motion";
-import { QRCodeScanner } from "./QRCodeScanner";
+import { QRCodeScanSection } from "./QRCodeScanSection";
 
 export const WarehouseView: React.FC = () => {
   const { locations, getArtworksByContainer, setSelectedArtwork, getChildLocations, artworks } = useArtwork();
@@ -18,6 +18,7 @@ export const WarehouseView: React.FC = () => {
     etageId?: string;
     boxId?: string;
   }>({ warehouseId: selectedWarehouse });
+  const [showEtages, setShowEtages] = useState<boolean>(false);
 
   const warehouses = locations.filter(loc => loc.type === "warehouse");
   
@@ -26,6 +27,7 @@ export const WarehouseView: React.FC = () => {
       case "warehouse":
         setCurrentView({ warehouseId: location.id });
         setSelectedWarehouse(location.id);
+        setShowEtages(prev => !prev);
         break;
       case "etage":
         setCurrentView({ warehouseId: currentView.warehouseId, etageId: location.id });
@@ -190,23 +192,26 @@ export const WarehouseView: React.FC = () => {
       );
     }
     
-    // Warehouse view - show etages in this warehouse
+    // Warehouse view
     const etages = getChildLocations(currentView.warehouseId);
     const warehouse = locations.find(l => l.id === currentView.warehouseId);
     
     return (
       <div>
-        <h2 className="text-lg sm:text-xl font-medium mb-4 text-foreground">{warehouse?.name} Etagen</h2>
-        {etages.length === 0 ? (
-          <p className="text-gray-500">Keine Etagen in diesem Lagerhaus.</p>
+        {showEtages ? (
+          <>
+            <h2 className="text-lg sm:text-xl font-medium mb-4 text-foreground">{warehouse?.name} Etagen</h2>
+            {etages.length === 0 ? (
+              <p className="text-gray-500">Keine Etagen in diesem Lagerhaus.</p>
+            ) : (
+              etages.map(etage => renderLocationCard(etage))
+            )}
+          </>
         ) : (
-          etages.map(etage => renderLocationCard(etage))
+          <div className="mt-4">
+            <QRCodeScanSection />
+          </div>
         )}
-
-        {/* QR Code Scanner Section */}
-        <div className="mt-6 sm:mt-8">
-          <QRCodeScanner title="Scan QR Code" />
-        </div>
         {/* Do not render the selected warehouse card again */}
       </div>
     );
@@ -238,6 +243,17 @@ export const WarehouseView: React.FC = () => {
             <TabsTrigger 
               key={warehouse.id} 
               value={warehouse.id}
+              onClick={() => {
+                if (selectedWarehouse === warehouse.id) {
+                  // toggle
+                  setShowEtages(prev => !prev);
+                  setCurrentView({ warehouseId: warehouse.id });
+                } else {
+                  setSelectedWarehouse(warehouse.id);
+                  setCurrentView({ warehouseId: warehouse.id });
+                  setShowEtages(true);
+                }
+              }}
               className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground whitespace-nowrap min-w-0"
             >
               <span className="truncate">{warehouse.name}</span>

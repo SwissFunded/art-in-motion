@@ -6,6 +6,10 @@ import { WarehouseView } from "./WarehouseView";
 import { ArtworkDetailsModal } from "./ArtworkDetailsModal";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Input } from "@/components/ui/input";
+import { GlobalSearch } from "./GlobalSearch";
+import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
+import { QuickActions } from "./QuickActions";
 
 export const Layout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("warehouses");
@@ -15,6 +19,7 @@ export const Layout: React.FC = () => {
     [0, 100],
     ["rgba(255, 255, 255, 0.8)", "rgba(255, 255, 255, 0.95)"]
   );
+  const { user, logout } = useAuth();
   
   return (
     <div className="min-h-screen w-full bg-background">
@@ -35,14 +40,24 @@ export const Layout: React.FC = () => {
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Art-In-Motion</h1>
               <p className="text-muted-foreground text-xs sm:text-sm">Manage your art collection</p>
             </div>
-            <div className="flex justify-center sm:justify-end">
-              <div className="w-full max-w-xs sm:w-40 lg:w-64">
-                <Input 
-                  placeholder="Search artworks..." 
-                  className="h-8 sm:h-9 text-sm bg-background/50 border-border/50 focus:bg-background" 
-                  disabled 
-                />
-              </div>
+            <div className="flex justify-center sm:justify-end items-center gap-2">
+              <GlobalSearch />
+              <QuickActions />
+              {user ? (
+                <button
+                  onClick={logout}
+                  className="ml-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="ml-2 text-xs sm:text-sm text-primary hover:underline"
+                >
+                  Login
+                </Link>
+              )}
             </div>
           </motion.div>
         </div>
