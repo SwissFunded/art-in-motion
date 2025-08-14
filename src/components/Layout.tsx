@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArtworksList } from "./ArtworksList";
 import { WarehouseView } from "./WarehouseView";
@@ -10,24 +10,29 @@ import { GlobalSearch } from "./GlobalSearch";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 import { QuickActions } from "./QuickActions";
+import { useI18n } from "@/context/I18nContext";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useTheme } from "next-themes";
+import { ThemeSwitch } from "./ThemeSwitch";
+import { Button } from "@/components/ui/button";
 
 export const Layout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("warehouses");
   const { scrollY } = useScroll();
-  const headerBg = useTransform(
-    scrollY,
-    [0, 100],
-    ["rgba(255, 255, 255, 0.8)", "rgba(255, 255, 255, 0.95)"]
-  );
+  const { resolvedTheme } = useTheme();
+  const headerBg = useTransform(scrollY, [0, 100], [0.8, 0.95]);
+  const headerColor = useMemo(() => (resolvedTheme === "dark" ? "0, 0, 0" : "255, 255, 255"), [resolvedTheme]);
+  const headerBgColor = useTransform(headerBg, (o) => `rgba(${headerColor}, ${o})`);
   const { user, logout } = useAuth();
+  const { t, language, setLanguage } = useI18n();
   
   return (
-    <div className="min-h-screen w-full bg-background">
+    <div className="min-h-screen w-full bg-background dark:bg-black">
       {/* Sticky header section */}
       <motion.header 
         className="sticky top-0 z-50 border-b border-border/50 backdrop-blur-md"
-        style={{ backgroundColor: headerBg }}
       >
+        <motion.div className="w-full" style={{ backgroundColor: headerBgColor }}>
         <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <motion.div 
             initial={{ y: -24, opacity: 0 }}
@@ -38,29 +43,37 @@ export const Layout: React.FC = () => {
             <div className="hidden sm:block" />
             <div className="text-center">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Art-In-Motion</h1>
-              <p className="text-muted-foreground text-xs sm:text-sm">Manage your art collection</p>
+              <p className="text-muted-foreground text-xs sm:text-sm">{t('header.tagline')}</p>
             </div>
-            <div className="flex justify-center sm:justify-end items-center gap-2">
-              <GlobalSearch />
-              <QuickActions />
-              {user ? (
-                <button
-                  onClick={logout}
-                  className="ml-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground"
-                >
-                  Logout
-                </button>
-              ) : (
-                <Link
-                  to="/login"
-                  className="ml-2 text-xs sm:text-sm text-primary hover:underline"
-                >
-                  Login
-                </Link>
-              )}
+            <div className="flex justify-start sm:justify-end">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 bg-background/60 border border-border/40 rounded-full px-1.5 sm:px-2 py-1 backdrop-blur-sm ring-1 ring-border/30">
+                  <GlobalSearch className="w-40 sm:w-60 md:w-72 lg:w-80" />
+                  <QuickActions />
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <LanguageSwitcher />
+                  <ThemeSwitch />
+                  {user ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={logout}
+                      className="h-8 sm:h-9 rounded-full px-3 text-xs sm:text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      {t('auth.logout')}
+                    </Button>
+                  ) : (
+                    <Button asChild variant="ghost" size="sm" className="h-8 sm:h-9 rounded-full px-3 text-xs sm:text-sm">
+                      <Link to="/login">{t('auth.login')}</Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
+        </motion.div>
       </motion.header>
 
       {/* Main content area */}
@@ -77,13 +90,13 @@ export const Layout: React.FC = () => {
                 value="warehouses" 
                 className="text-sm font-medium rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
               >
-                Lagerhäuser
+                {t('tabs.warehouses')}
               </TabsTrigger>
               <TabsTrigger 
                 value="artworks" 
                 className="text-sm font-medium rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
               >
-                Alle Kunstwerke
+                {t('tabs.artworks')}
               </TabsTrigger>
             </TabsList>
           

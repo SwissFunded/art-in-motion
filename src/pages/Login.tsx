@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Login: React.FC = () => {
   const { login, register, isLoading } = useAuth();
@@ -36,7 +37,10 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="relative min-h-screen flex items-center justify-center px-4">
+      <div className="absolute top-3 right-3 z-10">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-md border-border/50 bg-card/70 backdrop-blur-sm shadow-ios">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold tracking-tight">Sign in</CardTitle>

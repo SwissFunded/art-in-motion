@@ -4,6 +4,7 @@ import { useArtwork, Location } from "@/context/ArtworkContext";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
+import { useI18n } from "@/context/I18nContext";
 
 interface LocationFilterProps {
   onSelectLocation: (locationId: string) => void;
@@ -12,6 +13,7 @@ interface LocationFilterProps {
 
 export const LocationFilter: React.FC<LocationFilterProps> = ({ onSelectLocation, selectedLocation }) => {
   const { locations } = useArtwork();
+  const { t } = useI18n();
   
   const warehouses = locations.filter(loc => loc.type === "warehouse");
 
@@ -22,7 +24,7 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({ onSelectLocation
       transition={{ duration: 0.4 }}
       className="mb-6"
     >
-      <h3 className="section-header">STANDORTE</h3>
+      <h3 className="section-header">{t('location.header')}</h3>
       <Tabs defaultValue="all">
         <TabsList className="h-12 p-1 grid w-full bg-muted rounded-xl overflow-x-auto" style={{ gridTemplateColumns: `repeat(${warehouses.length + 1}, minmax(80px, 1fr))` }}>
           <TabsTrigger 
@@ -30,7 +32,7 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({ onSelectLocation
             onClick={() => onSelectLocation("all")}
             className="text-sm font-medium px-3 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-ios data-[state=active]:text-foreground whitespace-nowrap"
           >
-            Alle
+            {t('location.all')}
           </TabsTrigger>
           {warehouses.map(warehouse => (
             <TabsTrigger 

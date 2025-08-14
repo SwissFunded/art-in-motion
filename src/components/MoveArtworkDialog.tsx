@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { MoveArtworkForm } from "./MoveArtworkForm";
 import { motion } from "framer-motion";
+import { useI18n } from "@/context/I18nContext";
 
 interface MoveArtworkDialogProps {
   isOpen: boolean;
@@ -17,12 +18,13 @@ export const MoveArtworkDialog: React.FC<MoveArtworkDialogProps> = ({
   artworkId,
   artworkName
 }) => {
+  const { t } = useI18n();
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-4">
           <DialogTitle className="text-lg sm:text-xl pr-8">
-            Kunstwerk verschieben: {artworkName}
+            {t('dialog.move.title', { name: artworkName })}
           </DialogTitle>
         </DialogHeader>
         
@@ -41,7 +43,7 @@ export const MoveArtworkDialog: React.FC<MoveArtworkDialogProps> = ({
             onClick={onClose}
             className="w-full sm:w-auto touch-manipulation h-11"
           >
-            Abbrechen
+            {t('dialog.cancel')}
           </Button>
         </DialogFooter>
       </DialogContent>

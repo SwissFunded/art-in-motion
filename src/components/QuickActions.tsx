@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { QRCodeScanner } from "./QRCodeScanner";
 import { useNavigate } from "react-router-dom";
 import { MoreHorizontal, Home, Camera, Mail } from "lucide-react";
+import { useI18n } from "@/context/I18nContext";
 
 export const QuickActions: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   return (
     <>
@@ -25,7 +27,7 @@ export const QuickActions: React.FC = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="w-[90vw] max-w-sm">
           <DialogHeader>
-            <DialogTitle>Quick Actions</DialogTitle>
+            <DialogTitle>{t('quick.title')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Button
@@ -36,7 +38,7 @@ export const QuickActions: React.FC = () => {
                 setOpen(false);
               }}
             >
-              <Home size={18} className="mr-2" /> Return to Home
+              <Home size={18} className="mr-2" /> {t('quick.returnHome')}
             </Button>
             <Button
               variant="outline"
@@ -46,11 +48,11 @@ export const QuickActions: React.FC = () => {
                 setScannerOpen(true);
               }}
             >
-              <Camera size={18} className="mr-2" /> Scan QR Code
+              <Camera size={18} className="mr-2" /> {t('quick.scanQr')}
             </Button>
             <Button variant="outline" className="w-full justify-start h-11" asChild>
               <a href="mailto:support@artinmotion.app" className="inline-flex items-center w-full">
-                <Mail size={18} className="mr-2" /> Contact us
+                <Mail size={18} className="mr-2" /> {t('quick.contactUs')}
               </a>
             </Button>
           </div>

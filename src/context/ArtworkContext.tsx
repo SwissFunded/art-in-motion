@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { supabase, SUPABASE_TABLE } from "@/lib/supabaseClient";
+import { supabase, SUPABASE_TABLE, SUPABASE_SCHEMA } from "@/lib/supabaseClient";
 import { useToast } from "@/components/ui/use-toast";
 
 export interface Artwork {
@@ -320,29 +320,48 @@ export const ArtworkProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
   const { toast } = useToast();
 
+  // Deterministically spread artworks across warehouses and boxes based on a seed
+  const randomPlacementForSeed = (
+    seed: string
+  ): { locationId: string; containerType: "warehouse" | "etage" | "box"; containerId: string } => {
+    const hashString = (s: string) => {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) {
+        h = (h << 5) - h + s.charCodeAt(i);
+        h |= 0;
+      }
+      return Math.abs(h);
+    };
+    const hashed = hashString(seed);
+    const allWarehouses = locations.filter(l => l.type === "warehouse");
+    const allBoxes = locations.filter(l => l.type === "box");
+    if (allWarehouses.length === 0) {
+      return { locationId: "w1", containerType: "box", containerId: "b1" };
+    }
+    // 25% of artworks placed directly in a warehouse, 75% inside boxes
+    const pickWarehouse = (hashed % 4) === 0 || allBoxes.length === 0;
+    if (pickWarehouse) {
+      const w = allWarehouses[hashed % allWarehouses.length];
+      return { locationId: w.id, containerType: "warehouse", containerId: w.id };
+    }
+    const box = allBoxes[hashed % allBoxes.length];
+    const etage = locations.find(l => l.id === box.parentId);
+    const warehouseId = etage?.parentId || "w1";
+    return { locationId: warehouseId, containerType: "box", containerId: box.id };
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
-        const { data: locs, error: locErr } = await supabase
-          .from('locations')
-          .select('id,name,type,parentId');
-        if (!locErr && Array.isArray(locs) && locs.length) {
-          setLocations(locs as Location[]);
-        }
-
-        // Align to user's table schema: id, "Nummer", artist_name, location_raw, location_normalized, exhibitions
-        // We'll map these into our Artwork shape with sensible defaults
-        const { data: rows, error: artErr } = await supabase
-          .from(SUPABASE_TABLE)
-          .select('id, Nummer, artist_name, location_raw, location_normalized, exhibitions');
-        if (!artErr && Array.isArray(rows) && rows.length) {
-          const mapped: Artwork[] = rows.map((r: any, idx: number) => {
-            const customId = String(r.Nummer ?? r.id ?? idx + 1);
-            const locationNorm: string = r.location_normalized || r.location_raw || '';
-            // Try to resolve container by normalized name
-            const resolved = locations.find(l => l.name.toLowerCase() === locationNorm.toLowerCase());
-            const containerId = resolved?.id || 'b1';
-            const containerType = resolved?.type || 'box';
+        // Prefer serverless API (works regardless of RLS) – only reads artworks
+        const resp = await fetch('/api/artworks');
+        const isJson = resp.headers.get('content-type')?.includes('application/json');
+        if (resp.ok && isJson) {
+          const { rows } = await resp.json();
+          const mapped: Artwork[] = (rows as any[]).map((r: any, idx: number) => {
+            const customNum = (r as any).nummer ?? (r as any).Nummer;
+            const customId = String(customNum ?? r.id ?? idx + 1);
+            const placement = randomPlacementForSeed(customId);
             return {
               id: String(r.id ?? customId),
               customId: String(customId),
@@ -351,9 +370,36 @@ export const ArtworkProvider: React.FC<{ children: ReactNode }> = ({ children })
               year: new Date().getFullYear(),
               artworkNumber: String(customId),
               image: undefined,
-              locationId: resolved?.parentId || 'w1',
-              containerType: containerType as any,
-              containerId,
+              locationId: placement.locationId,
+              containerType: placement.containerType,
+              containerId: placement.containerId,
+            } as Artwork;
+          });
+          setArtworks(mapped);
+          return;
+        }
+
+        // Fallback to direct client if serverless path fails and envs exist
+        if (!supabase) return;
+        const { data: rows, error: artErr } = await supabase
+          .from(SUPABASE_TABLE)
+          .select('id, nummer, artist_name, location_raw, location_normalized, exhibitions');
+        if (!artErr && Array.isArray(rows) && rows.length) {
+          const mapped: Artwork[] = (rows as any[]).map((r: any, idx: number) => {
+            const customNum = (r as any).nummer ?? (r as any).Nummer;
+            const customId = String(customNum ?? r.id ?? idx + 1);
+            const placement = randomPlacementForSeed(customId);
+            return {
+              id: String(r.id ?? customId),
+              customId: String(customId),
+              name: String(r.exhibitions || `Artwork ${customId}`),
+              artist: String(r.artist_name || 'Unknown Artist'),
+              year: new Date().getFullYear(),
+              artworkNumber: String(customId),
+              image: undefined,
+              locationId: placement.locationId,
+              containerType: placement.containerType,
+              containerId: placement.containerId,
             } as Artwork;
           });
           setArtworks(mapped);
@@ -365,17 +411,89 @@ export const ArtworkProvider: React.FC<{ children: ReactNode }> = ({ children })
     load();
   }, []);
 
+  // Live updates via Supabase Realtime (optional; requires Realtime enabled on the table)
+  useEffect(() => {
+    if (!supabase) return;
+
+    const mapRowToArtwork = (r: any, idx: number = 0): Artwork => {
+      const customNum = (r as any).nummer ?? (r as any).Nummer;
+      const customId = String(customNum ?? r.id ?? idx + 1);
+      const placement = randomPlacementForSeed(customId);
+      return {
+        id: String(r.id ?? customId),
+        customId: String(customId),
+        name: String(r.exhibitions || `Artwork ${customId}`),
+        artist: String(r.artist_name || 'Unknown Artist'),
+        year: new Date().getFullYear(),
+        artworkNumber: String(customId),
+        image: undefined,
+        locationId: placement.locationId,
+        containerType: placement.containerType,
+        containerId: placement.containerId,
+      } as Artwork;
+    };
+
+    const channel = supabase
+      .channel('realtime-artworks')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: SUPABASE_SCHEMA, table: SUPABASE_TABLE },
+        (payload: any) => {
+          setArtworks(current => {
+            if (payload.eventType === 'INSERT') {
+              const newArt = mapRowToArtwork(payload.new);
+              const exists = current.some(a => a.id === newArt.id);
+              return exists ? current : [newArt, ...current];
+            }
+            if (payload.eventType === 'UPDATE') {
+              const updated = mapRowToArtwork(payload.new);
+              return current.map(a => (a.id === updated.id ? updated : a));
+            }
+            if (payload.eventType === 'DELETE') {
+              const deletedId = String(payload.old?.id ?? '');
+              return current.filter(a => a.id !== deletedId);
+            }
+            return current;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try {
+        supabase.removeChannel(channel);
+      } catch {}
+    };
+  }, [locations]);
+
   const moveArtwork = (artworkId: string, newContainerId: string, containerType: "warehouse" | "etage" | "box") => {
     const container = locations.find(l => l.id === newContainerId);
     if (!container) return;
 
     setArtworks(prevArtworks => {
+      const movedAt = new Date().toISOString();
       return prevArtworks.map(artwork => {
         if (artwork.id === artworkId) {
           toast({
             title: "Artwork Moved",
             description: `${artwork.name} moved to ${container.name}`,
           });
+          // Fire-and-forget serverless notification (no await to keep UI snappy)
+          try {
+            const fromPath = getLocationName(artwork.containerId);
+            const toPath = getLocationName(newContainerId);
+            fetch('/api/notify', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({
+                artworkId,
+                artworkName: artwork.name,
+                fromPath,
+                toPath,
+                whenISO: movedAt,
+              }),
+            }).catch(() => {});
+          } catch {}
           return {
             ...artwork,
             locationId: container.parentId || newContainerId,

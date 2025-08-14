@@ -6,9 +6,10 @@ import { Search, X } from "lucide-react";
 
 interface GlobalSearchProps {
   placeholder?: string;
+  className?: string;
 }
 
-export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Search artworks..." }) => {
+export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Search artworks...", className }) => {
   const { artworks, getLocationById, setSelectedArtwork } = useArtwork();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -52,9 +53,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Searc
   };
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-xs sm:w-40 lg:w-64">
+    <div ref={containerRef} className={`relative w-24 xs:w-36 sm:w-48 md:w-64 lg:w-80 shrink-0 ${className || ""}`}>
       <div className="relative">
-        <Search size={16} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
           onChange={(e) => {
@@ -63,11 +64,11 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Searc
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="h-8 sm:h-9 pl-8 text-sm bg-background/50 border-border/50 focus:bg-background"
+          className="h-8 sm:h-9 pl-9 pr-8 text-sm bg-transparent border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full"
         />
         {query && (
           <button
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             onClick={() => setQuery("")}
             aria-label="Clear"
           >

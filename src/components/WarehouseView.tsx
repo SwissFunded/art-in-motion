@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import { BoxArtworkView } from "./BoxArtworkView";
 import { motion } from "framer-motion";
 import { QRCodeScanSection } from "./QRCodeScanSection";
+import { useI18n } from "@/context/I18nContext";
 
 export const WarehouseView: React.FC = () => {
   const { locations, getArtworksByContainer, setSelectedArtwork, getChildLocations, artworks } = useArtwork();
+  const { t } = useI18n();
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(locations.find(l => l.type === "warehouse")?.id || "");
   const [currentView, setCurrentView] = useState<{
     warehouseId: string;
@@ -89,7 +91,7 @@ export const WarehouseView: React.FC = () => {
     // Translations for child count
     const getLocationTypeLabel = (type: string, count: number = 1) => {
       switch(type) {
-        case "warehouse": return count === 1 ? "Etage" : "Etagen";
+        case "warehouse": return count === 1 ? t('warehouse.child.etage.singular') : t('warehouse.child.etage.plural');
         case "etage": return count === 1 ? "Box" : "Boxen";
         default: return type;
       }
@@ -130,7 +132,7 @@ export const WarehouseView: React.FC = () => {
           </CardHeader>
           <CardContent className="p-4 sm:p-5 pt-0">
             {artworksInContainer.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Keine Kunstwerke direkt hier gelagert</p>
+              <p className="text-sm text-muted-foreground">{t('warehouse.noneDirect')}</p>
             ) : (
               <div className="space-y-2">
                 {artworksInContainer.slice(0, 3).map(artwork => (
@@ -148,7 +150,7 @@ export const WarehouseView: React.FC = () => {
                 ))}
                 {artworksInContainer.length > 3 && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    +{artworksInContainer.length - 3} weitere Kunstwerke
+                    {t('more.artworks', { count: artworksInContainer.length - 3 })}
                   </p>
                 )}
               </div>
@@ -173,17 +175,17 @@ export const WarehouseView: React.FC = () => {
     if (currentView.etageId) {
       // Etage view - show boxes directly in this etage
       const etage = locations.find(l => l.id === currentView.etageId);
-      if (!etage) return <div>Etage nicht gefunden</div>;
+      if (!etage) return <div>{t('notfound.etage')}</div>;
       const boxes = getChildLocations(currentView.etageId);
 
       return (
         <div>
           <Button variant="outline" onClick={navigateBack} className="mb-4 w-full sm:w-auto h-11 text-sm touch-manipulation">
-            <ArrowLeft className="mr-2" size={16} /> Zurück zum Lagerhaus
+            <ArrowLeft className="mr-2" size={16} /> {t('warehouse.backToWarehouse')}
           </Button>
-          <h2 className="text-lg sm:text-xl font-medium mb-4 text-foreground">{etage.name} Boxen</h2>
+          <h2 className="text-lg sm:text-xl font-medium mb-4 text-foreground">{t('warehouse.etagenOf', { name: etage.name })}</h2>
           {boxes.length === 0 ? (
-            <p className="text-gray-500">Keine Boxen in dieser Etage.</p>
+            <p className="text-gray-500">—</p>
           ) : (
             boxes.map(box => renderLocationCard(box))
           )}

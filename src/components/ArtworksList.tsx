@@ -6,9 +6,11 @@ import { LocationFilter } from "./LocationFilter";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { useI18n } from "@/context/I18nContext";
 
 export const ArtworksList: React.FC = () => {
   const { artworks } = useArtwork();
+  const { t } = useI18n();
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -28,16 +30,16 @@ export const ArtworksList: React.FC = () => {
     >
       {/* Section Header */}
       <div>
-        <h2 className="section-header">ALLE KUNSTWERKE</h2>
+        <h2 className="section-header">{t('artworks.header')}</h2>
       </div>
 
       {/* Search Bar */}
       <div className="w-full">
-        <Label htmlFor="search" className="sr-only">Suche</Label>
+        <Label htmlFor="search" className="sr-only">{t('search.label')}</Label>
         <Input
           id="search"
           type="text"
-          placeholder="Search by name or artist... (coming soon)"
+          placeholder={t('search.placeholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full h-12 text-base bg-muted/50 border-border/50 rounded-xl"
@@ -51,7 +53,7 @@ export const ArtworksList: React.FC = () => {
 
       {filteredArtworks.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          <p className="text-base">Keine Kunstwerke gefunden, die Ihren Kriterien entsprechen.</p>
+          <p className="text-base">{t('artworks.none')}</p>
         </div>
       ) : (
         <motion.div 

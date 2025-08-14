@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { MoveArtworkDialog } from "./MoveArtworkDialog";
 import { motion } from "framer-motion";
+import { useI18n } from "@/context/I18nContext";
 
 interface BoxArtworkViewProps {
   boxId: string;
@@ -16,11 +17,12 @@ export const BoxArtworkView: React.FC<BoxArtworkViewProps> = ({ boxId, onBack })
   const { locations, getArtworksByContainer, getLocationById } = useArtwork();
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [selectedArtworkForMove, setSelectedArtworkForMove] = useState<Artwork | null>(null);
+  const { t } = useI18n();
 
   const box = locations.find(l => l.id === boxId);
   const artworksInBox = getArtworksByContainer(boxId);
 
-  if (!box) return <div>Box nicht gefunden</div>;
+  if (!box) return <div>{t('notfound.box')}</div>;
 
   const getLocationPath = (containerId: string): string => {
     const container = getLocationById(containerId);
@@ -55,7 +57,7 @@ export const BoxArtworkView: React.FC<BoxArtworkViewProps> = ({ boxId, onBack })
         onClick={onBack} 
         className="w-full sm:w-auto h-11 text-sm border-border/50 hover:bg-muted touch-manipulation"
       >
-        <ArrowLeft className="mr-2" size={16} /> Zurück
+        <ArrowLeft className="mr-2" size={16} /> {t('box.back')}
       </Button>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -67,13 +69,13 @@ export const BoxArtworkView: React.FC<BoxArtworkViewProps> = ({ boxId, onBack })
           </div>
         </div>
         <Badge className="bg-primary/10 text-primary border-primary/20 font-medium text-xs sm:text-sm shrink-0 self-start sm:self-center">
-          {artworksInBox.length} {artworksInBox.length === 1 ? "Kunstwerk" : "Kunstwerke"}
+          {artworksInBox.length} {artworksInBox.length === 1 ? t('box.count.singular') : t('box.count.plural')}
         </Badge>
       </div>
 
       {artworksInBox.length === 0 ? (
         <Card className="p-8 text-center">
-          <p className="text-muted-foreground">Keine Kunstwerke in dieser Box</p>
+          <p className="text-muted-foreground">{t('artworks.none')}</p>
         </Card>
       ) : (
         <div className="grid gap-4 sm:gap-6">
@@ -117,15 +119,15 @@ export const BoxArtworkView: React.FC<BoxArtworkViewProps> = ({ boxId, onBack })
                             <p className="text-foreground font-mono text-xs sm:text-sm">{artwork.artworkNumber}</p>
                           </div>
                           <div>
-                            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Künstler</h3>
+                            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">{t('box.artist')}</h3>
                             <p className="text-foreground text-sm sm:text-base">{artwork.artist}</p>
                           </div>
                           <div>
-                            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Jahr</h3>
+                            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">{t('box.year')}</h3>
                             <p className="text-foreground text-sm sm:text-base">{artwork.year}</p>
                           </div>
                           <div className="sm:col-span-2">
-                            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Latest Location</h3>
+                            <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">{t('box.latestLocation')}</h3>
                             <p className="text-foreground text-sm sm:text-base truncate">
                               {getLocationPath(artwork.containerId)}
                             </p>
@@ -139,7 +141,7 @@ export const BoxArtworkView: React.FC<BoxArtworkViewProps> = ({ boxId, onBack })
                           onClick={() => handleMoveArtwork(artwork)}
                           className="w-full sm:w-auto touch-manipulation h-11"
                         >
-                          Change Location
+                          {t('box.changeLocation')}
                         </Button>
                       </div>
                     </div>
