@@ -13,7 +13,7 @@ import { QuickActions } from "./QuickActions";
 import { useI18n } from "@/context/I18nContext";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTheme } from "next-themes";
-import { ThemeSwitch } from "./ThemeSwitch";
+import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 
 export const Layout: React.FC = () => {
@@ -45,30 +45,27 @@ export const Layout: React.FC = () => {
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Art-In-Motion</h1>
               <p className="text-muted-foreground text-xs sm:text-sm">{t('header.tagline')}</p>
             </div>
-            <div className="flex justify-start sm:justify-end">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-1.5 sm:gap-2 bg-background/60 border border-border/40 rounded-full px-1.5 sm:px-2 py-1 backdrop-blur-sm ring-1 ring-border/30">
-                  <GlobalSearch className="w-40 sm:w-60 md:w-72 lg:w-80" />
-                  <QuickActions />
-                </div>
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <LanguageSwitcher />
-                  <ThemeSwitch />
-                  {user ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={logout}
-                      className="h-8 sm:h-9 rounded-full px-3 text-xs sm:text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      {t('auth.logout')}
-                    </Button>
-                  ) : (
-                    <Button asChild variant="ghost" size="sm" className="h-8 sm:h-9 rounded-full px-3 text-xs sm:text-sm">
-                      <Link to="/login">{t('auth.login')}</Link>
-                    </Button>
-                  )}
-                </div>
+            <div className="flex justify-center sm:justify-end min-w-0">
+              <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2 bg-background/60 border border-border/40 rounded-full px-1.5 sm:px-2 py-1 backdrop-blur-sm ring-1 ring-border/30 max-w-full">
+                <GlobalSearch className="shrink w-32 xs:w-36 sm:w-44 md:w-52 lg:w-60" />
+                <QuickActions />
+                <LanguageSwitcher />
+                <ThemeToggle />
+                <div className="flex-1" />
+                {user ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={logout}
+                    className="h-8 sm:h-9 rounded-full px-3 text-xs sm:text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    {t('auth.logout')}
+                  </Button>
+                ) : (
+                  <Button asChild variant="ghost" size="sm" className="h-8 sm:h-9 rounded-full px-3 text-xs sm:text-sm">
+                    <Link to="/login">{t('auth.login')}</Link>
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>

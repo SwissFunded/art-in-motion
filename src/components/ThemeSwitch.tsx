@@ -12,16 +12,16 @@ export const ThemeSwitch = () => {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <div className="flex items-center gap-2 shrink-0">
+    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
       <Switch
         id="theme-switch"
         checked={isDark}
         onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
         aria-label="Toggle dark mode"
         title="Toggle dark mode"
-        className="border-border"
+        className="border-border h-8 w-[44px] sm:h-9 sm:w-[48px] rounded-full"
       />
-      <Label htmlFor="theme-switch" className="hidden sm:inline-block text-xs sm:text-sm text-muted-foreground">
+      <Label htmlFor="theme-switch" className="hidden sm:inline-block text-xs sm:text-sm text-muted-foreground select-none">
         Dark mode
       </Label>
     </div>

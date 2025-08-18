@@ -15,9 +15,9 @@ export const QuickActions: React.FC = () => {
   return (
     <>
       <Button
-        variant="outline"
-        size="sm"
-        className="h-8 sm:h-9"
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 sm:h-9 sm:w-9 rounded-full"
         onClick={() => setOpen(true)}
         aria-label="Open quick actions"
       >

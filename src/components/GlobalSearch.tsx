@@ -9,7 +9,7 @@ interface GlobalSearchProps {
   className?: string;
 }
 
-export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Search artworks...", className }) => {
+export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Search", className }) => {
   const { artworks, getLocationById, setSelectedArtwork } = useArtwork();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -55,7 +55,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Searc
   return (
     <div ref={containerRef} className={`relative w-24 xs:w-36 sm:w-48 md:w-64 lg:w-80 shrink-0 ${className || ""}`}>
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <span aria-hidden className="absolute right-3 top-1/2 -translate-y-1/2 w-[14px] h-[14px]" />
         <Input
           value={query}
           onChange={(e) => {
@@ -64,7 +65,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Searc
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="h-8 sm:h-9 pl-9 pr-8 text-sm bg-transparent border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full"
+          className="h-8 sm:h-9 pl-7 pr-7 text-sm bg-transparent border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full text-foreground/80 placeholder:text-muted-foreground/80 text-left placeholder-shown:text-center sm:placeholder-shown:text-left"
         />
         {query && (
           <button
