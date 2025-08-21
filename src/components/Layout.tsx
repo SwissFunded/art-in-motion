@@ -52,7 +52,7 @@ export const Layout: React.FC = () => {
             </div>
             
             {/* Right side - Action buttons */}
-            <div className="flex justify-center sm:justify-end min-w-0">
+            <div className="flex justify-center min-w-0">
               <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2 bg-background/60 border border-border/40 rounded-full px-1.5 sm:px-2 py-1 backdrop-blur-sm ring-1 ring-border/30">
                 <QuickActions />
                 <LanguageSwitcher />
