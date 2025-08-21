@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { QRCodeScanner } from "./QRCodeScanner";
+import { FileMakerImport } from "./FileMakerImport";
 import { useNavigate } from "react-router-dom";
 import { MoreHorizontal, Home, Camera, Mail } from "lucide-react";
 import { useI18n } from "@/context/I18nContext";
@@ -55,6 +56,16 @@ export const QuickActions: React.FC = () => {
                 <Mail size={18} className="mr-2" /> {t('quick.contactUs')}
               </a>
             </Button>
+            
+            {/* Hidden FileMaker Import Option */}
+            <div className="pt-2 border-t">
+              <div className="flex items-center justify-center">
+                <FileMakerImport />
+              </div>
+              <p className="text-xs text-center text-muted-foreground mt-1">
+                FileMaker Import
+              </p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
