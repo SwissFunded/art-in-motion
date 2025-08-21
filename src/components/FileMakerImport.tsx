@@ -177,8 +177,16 @@ export const FileMakerImport: React.FC = () => {
                 <Label>Processing FileMaker data...</Label>
                 <Progress value={importProgress} className="w-full" />
                 <p className="text-sm text-muted-foreground">
-                  Extracting artworks, images, and location data...
+                  {importProgress < 50 
+                    ? 'Reading file in chunks...' 
+                    : 'Extracting artworks, images, and location data...'
+                  }
                 </p>
+                {importProgress < 50 && (
+                  <p className="text-xs text-muted-foreground">
+                    Large file detected - processing in chunks for better performance
+                  </p>
+                )}
               </div>
             )}
 

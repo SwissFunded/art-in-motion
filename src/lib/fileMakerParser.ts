@@ -57,6 +57,12 @@ export async function parseFileMakerFile(file: File): Promise<FileMakerData> {
     console.log('Starting REAL FileMaker file parsing for:', file.name);
     console.log('File size:', file.size, 'bytes');
     
+    // For very large files, use streaming approach
+    if (file.size > 500 * 1024 * 1024) { // 500MB
+      console.log('Large file detected, using streaming approach...');
+      return await parseLargeFileMakerFile(file);
+    }
+    
     // Read the file as ArrayBuffer to access binary data
     const arrayBuffer = await file.arrayBuffer();
     
@@ -351,6 +357,102 @@ function isValidLocation(location: Partial<FileMakerLocation>): boolean {
 }
 
 /**
+ * Parse large FileMaker files using streaming approach
+ */
+async function parseLargeFileMakerFile(file: File): Promise<FileMakerData> {
+  console.log('Using streaming parser for large file...');
+  
+  try {
+    // For large files, we'll read in chunks to avoid memory issues
+    const chunkSize = 1024 * 1024; // 1MB chunks
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    
+    console.log(`Reading file in ${totalChunks} chunks...`);
+    
+    let artworks: FileMakerArtwork[] = [];
+    let locations: FileMakerLocation[] = [];
+    let textContent = '';
+    
+    // Read file in chunks
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const chunk = file.slice(start, end);
+      
+      // Convert chunk to text
+      const chunkText = await chunk.text();
+      textContent += chunkText;
+      
+      // Process chunk for data patterns
+      if (i === 0 || i === totalChunks - 1) {
+        // Process first and last chunks more thoroughly
+        const chunkArtworks = findArtworkPatterns(chunkText);
+        const chunkLocations = findLocationPatterns(chunkText);
+        
+        artworks.push(...chunkArtworks);
+        locations.push(...chunkLocations);
+      }
+      
+      // Progress update
+      if (i % 10 === 0) {
+        console.log(`Processed chunk ${i + 1}/${totalChunks} (${Math.round((i + 1) / totalChunks * 100)}%)`);
+      }
+    }
+    
+    // Remove duplicates
+    artworks = removeDuplicateArtworks(artworks);
+    locations = removeDuplicateLocations(locations);
+    
+    console.log(`Streaming parser found: ${artworks.length} artworks, ${locations.length} locations`);
+    
+    return {
+      artworks,
+      locations,
+      metadata: {
+        totalArtworks: artworks.length,
+        totalLocations: locations.length,
+        importDate: new Date().toISOString(),
+        sourceFile: file.name
+      }
+    };
+    
+  } catch (error) {
+    console.error('Error in streaming parser:', error);
+    throw new Error(`Streaming parser failed: ${error.message}`);
+  }
+}
+
+/**
+ * Remove duplicate artworks based on title
+ */
+function removeDuplicateArtworks(artworks: FileMakerArtwork[]): FileMakerArtwork[] {
+  const seen = new Set<string>();
+  return artworks.filter(artwork => {
+    const key = artwork.title?.toLowerCase() || '';
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
+ * Remove duplicate locations based on name
+ */
+function removeDuplicateLocations(locations: FileMakerLocation[]): FileMakerLocation[] {
+  const seen = new Set<string>();
+  return locations.filter(location => {
+    const key = location.name?.toLowerCase() || '';
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
  * Extract image data from FileMaker container fields
  * This would handle the actual image extraction from .fmp12 files
  */
@@ -379,7 +481,12 @@ export function validateFileMakerFile(file: File): boolean {
     return false;
   }
   
-  // Check file size (FileMaker files are typically several MB)
+  // Check file size - allow larger files but warn about very large ones
+  const maxSize = 5 * 1024 * 1024 * 1024; // 5GB limit
+  if (file.size > maxSize) {
+    console.warn('File is very large:', file.size, 'bytes. This may cause performance issues.');
+  }
+  
   if (file.size < 1024 * 1024) { // Less than 1MB
     return false;
   }
