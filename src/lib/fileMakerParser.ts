@@ -237,8 +237,11 @@ function findArtworkPatterns(textContent: string): FileMakerArtwork[] {
   let currentArtwork: Partial<FileMakerArtwork> = {};
   
   for (const line of lines) {
-    // Look for potential artwork data
-    if (line.includes('Title:') || line.includes('title:')) {
+    // Look for potential artwork data - handle different separators and formats
+    const trimmedLine = line.trim();
+    
+    // Check for various field patterns
+    if (trimmedLine.includes('Title:') || trimmedLine.includes('title:') || trimmedLine.includes('Name:')) {
       if (currentArtwork.title) {
         // Save previous artwork if it has a title
         if (isValidArtwork(currentArtwork)) {
@@ -246,29 +249,55 @@ function findArtworkPatterns(textContent: string): FileMakerArtwork[] {
           artworks.push(currentArtwork as FileMakerArtwork);
         }
       }
-      currentArtwork = { title: line.split(':')[1]?.trim() || '' };
-    } else if (line.includes('Artist:') || line.includes('artist:')) {
-      currentArtwork.artist = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Location:') || line.includes('location:')) {
-      currentArtwork.location = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Description:') || line.includes('description:')) {
-      currentArtwork.description = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Dimensions:') || line.includes('dimensions:')) {
-      currentArtwork.dimensions = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Medium:') || line.includes('medium:')) {
-      currentArtwork.medium = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Year:') || line.includes('year:')) {
-      currentArtwork.year = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Category:') || line.includes('category:')) {
-      currentArtwork.category = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Value:') || line.includes('value:')) {
-      currentArtwork.value = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Condition:') || line.includes('condition:')) {
-      currentArtwork.condition = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Notes:') || line.includes('notes:')) {
-      currentArtwork.notes = line.split(':')[1]?.trim() || '';
+      // Extract title from various formats
+      const titleMatch = trimmedLine.match(/(?:Title|title|Name):\s*(.+)/);
+      currentArtwork = { title: titleMatch?.[1]?.trim() || '' };
+    } else if (trimmedLine.includes('Artist:') || trimmedLine.includes('artist:') || trimmedLine.includes('Creator:')) {
+      const artistMatch = trimmedLine.match(/(?:Artist|artist|Creator):\s*(.+)/);
+      currentArtwork.artist = artistMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Location:') || trimmedLine.includes('location:') || trimmedLine.includes('Place:')) {
+      const locationMatch = trimmedLine.match(/(?:Location|location|Place):\s*(.+)/);
+      currentArtwork.location = locationMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Description:') || trimmedLine.includes('description:') || trimmedLine.includes('Notes:')) {
+      const descMatch = trimmedLine.match(/(?:Description|description|Notes):\s*(.+)/);
+      currentArtwork.description = descMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Dimensions:') || trimmedLine.includes('dimensions:') || trimmedLine.includes('Size:')) {
+      const dimMatch = trimmedLine.match(/(?:Dimensions|dimensions|Size):\s*(.+)/);
+      currentArtwork.dimensions = dimMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Medium:') || trimmedLine.includes('medium:') || trimmedLine.includes('Material:')) {
+      const mediumMatch = trimmedLine.match(/(?:Medium|medium|Material):\s*(.+)/);
+      currentArtwork.medium = mediumMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Year:') || trimmedLine.includes('year:') || trimmedLine.includes('Date:')) {
+      const yearMatch = trimmedLine.match(/(?:Year|year|Date):\s*(.+)/);
+      currentArtwork.year = yearMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Category:') || trimmedLine.includes('category:') || trimmedLine.includes('Type:')) {
+      const catMatch = trimmedLine.match(/(?:Category|category|Type):\s*(.+)/);
+      currentArtwork.category = catMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Value:') || trimmedLine.includes('value:') || trimmedLine.includes('Price:')) {
+      const valueMatch = trimmedLine.match(/(?:Value|value|Price):\s*(.+)/);
+      currentArtwork.value = valueMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Condition:') || trimmedLine.includes('condition:') || trimmedLine.includes('State:')) {
+      const condMatch = trimmedLine.match(/(?:Condition|condition|State):\s*(.+)/);
+      currentArtwork.condition = condMatch?.[1]?.trim() || '';
     }
-    // Add more field detection as needed
+    
+    // Also look for tab-separated or other delimited formats
+    if (trimmedLine.includes('\t')) {
+      const parts = trimmedLine.split('\t');
+      if (parts.length >= 3) {
+        // Assume format: Title\tArtist\tLocation
+        const potentialArtwork: Partial<FileMakerArtwork> = {
+          title: parts[0]?.trim() || '',
+          artist: parts[1]?.trim() || '',
+          location: parts[2]?.trim() || ''
+        };
+        
+        if (isValidArtwork(potentialArtwork)) {
+          potentialArtwork.id = `art_${artworks.length + 1}`;
+          artworks.push(potentialArtwork as FileMakerArtwork);
+        }
+      }
+    }
   }
   
   // Add the last artwork if it's valid
@@ -316,28 +345,55 @@ function findLocationPatterns(textContent: string): FileMakerLocation[] {
   let currentLocation: Partial<FileMakerLocation> = {};
   
   for (const line of lines) {
-    if (line.includes('Location:') || line.includes('location:')) {
+    const trimmedLine = line.trim();
+    
+    if (trimmedLine.includes('Location:') || trimmedLine.includes('location:') || trimmedLine.includes('Place:')) {
       if (currentLocation.name) {
         if (isValidLocation(currentLocation)) {
           currentLocation.id = `loc_${locations.length + 1}`;
           locations.push(currentLocation as FileMakerLocation);
         }
       }
-      currentLocation = { name: line.split(':')[1]?.trim() || '' };
-    } else if (line.includes('Address:') || line.includes('address:')) {
-      currentLocation.address = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('City:') || line.includes('city:')) {
-      currentLocation.city = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Country:') || line.includes('country:')) {
-      currentLocation.country = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Type:') || line.includes('type:')) {
-      currentLocation.type = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Contact:') || line.includes('contact:')) {
-      currentLocation.contact = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Phone:') || line.includes('phone:')) {
-      currentLocation.phone = line.split(':')[1]?.trim() || '';
-    } else if (line.includes('Email:') || line.includes('email:')) {
-      currentLocation.email = line.split(':')[1]?.trim() || '';
+      const nameMatch = trimmedLine.match(/(?:Location|location|Place):\s*(.+)/);
+      currentLocation = { name: nameMatch?.[1]?.trim() || '' };
+    } else if (trimmedLine.includes('Address:') || trimmedLine.includes('address:') || trimmedLine.includes('Street:')) {
+      const addrMatch = trimmedLine.match(/(?:Address|address|Street):\s*(.+)/);
+      currentLocation.address = addrMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('City:') || trimmedLine.includes('city:')) {
+      const cityMatch = trimmedLine.match(/(?:City|city):\s*(.+)/);
+      currentLocation.city = cityMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Country:') || trimmedLine.includes('country:')) {
+      const countryMatch = trimmedLine.match(/(?:Country|country):\s*(.+)/);
+      currentLocation.country = countryMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Type:') || trimmedLine.includes('type:') || trimmedLine.includes('Category:')) {
+      const typeMatch = trimmedLine.match(/(?:Type|type|Category):\s*(.+)/);
+      currentLocation.type = typeMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Contact:') || trimmedLine.includes('contact:') || trimmedLine.includes('Person:')) {
+      const contactMatch = trimmedLine.match(/(?:Contact|contact|Person):\s*(.+)/);
+      currentLocation.contact = contactMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Phone:') || trimmedLine.includes('phone:') || trimmedLine.includes('Tel:')) {
+      const phoneMatch = trimmedLine.match(/(?:Phone|phone|Tel):\s*(.+)/);
+      currentLocation.phone = phoneMatch?.[1]?.trim() || '';
+    } else if (trimmedLine.includes('Email:') || trimmedLine.includes('email:')) {
+      const emailMatch = trimmedLine.match(/(?:Email|email):\s*(.+)/);
+      currentLocation.email = emailMatch?.[1]?.trim() || '';
+    }
+    
+    // Also look for tab-separated location data
+    if (trimmedLine.includes('\t')) {
+      const parts = trimmedLine.split('\t');
+      if (parts.length >= 2) {
+        // Assume format: Name\tAddress
+        const potentialLocation: Partial<FileMakerLocation> = {
+          name: parts[0]?.trim() || '',
+          address: parts[1]?.trim() || ''
+        };
+        
+        if (isValidLocation(potentialLocation)) {
+          potentialLocation.id = `loc_${locations.length + 1}`;
+          locations.push(potentialLocation as FileMakerLocation);
+        }
+      }
     }
   }
   
@@ -371,39 +427,48 @@ async function parseLargeFileMakerFile(file: File): Promise<FileMakerData> {
     
     let artworks: FileMakerArtwork[] = [];
     let locations: FileMakerLocation[] = [];
-    let textContent = '';
     
-    // Read file in chunks
+    // Read file in chunks - process each chunk individually to avoid string length issues
     for (let i = 0; i < totalChunks; i++) {
       const start = i * chunkSize;
       const end = Math.min(start + chunkSize, file.size);
       const chunk = file.slice(start, end);
       
-      // Convert chunk to text
-      const chunkText = await chunk.text();
-      textContent += chunkText;
-      
-      // Process chunk for data patterns
-      if (i === 0 || i === totalChunks - 1) {
-        // Process first and last chunks more thoroughly
+      try {
+        // Convert chunk to text
+        const chunkText = await chunk.text();
+        
+        // Process chunk for data patterns - process every chunk, not just first/last
         const chunkArtworks = findArtworkPatterns(chunkText);
         const chunkLocations = findLocationPatterns(chunkText);
         
-        artworks.push(...chunkArtworks);
-        locations.push(...chunkLocations);
-      }
-      
-      // Progress update
-      if (i % 10 === 0) {
-        console.log(`Processed chunk ${i + 1}/${totalChunks} (${Math.round((i + 1) / totalChunks * 100)}%)`);
+        // Add unique artworks from this chunk
+        for (const artwork of chunkArtworks) {
+          if (!artworks.some(existing => existing.title === artwork.title)) {
+            artworks.push(artwork);
+          }
+        }
+        
+        // Add unique locations from this chunk
+        for (const location of chunkLocations) {
+          if (!locations.some(existing => existing.name === location.name)) {
+            locations.push(location);
+          }
+        }
+        
+        // Progress update
+        if (i % 50 === 0 || i === totalChunks - 1) {
+          console.log(`Processed chunk ${i + 1}/${totalChunks} (${Math.round((i + 1) / totalChunks * 100)}%) - Found ${artworks.length} artworks, ${locations.length} locations so far`);
+        }
+        
+      } catch (chunkError) {
+        console.warn(`Error processing chunk ${i + 1}:`, chunkError);
+        // Continue with next chunk instead of failing completely
+        continue;
       }
     }
     
-    // Remove duplicates
-    artworks = removeDuplicateArtworks(artworks);
-    locations = removeDuplicateLocations(locations);
-    
-    console.log(`Streaming parser found: ${artworks.length} artworks, ${locations.length} locations`);
+    console.log(`Streaming parser completed. Total found: ${artworks.length} artworks, ${locations.length} locations`);
     
     return {
       artworks,
