@@ -40,18 +40,23 @@ export const Layout: React.FC = () => {
             transition={{ delay: 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col sm:grid sm:grid-cols-3 sm:items-center gap-3 sm:gap-4 max-w-7xl mx-auto"
           >
-            <div className="hidden sm:block" />
+            {/* Left side - Search bar */}
+            <div className="flex justify-center sm:justify-start min-w-0">
+              <GlobalSearch className="w-32 xs:w-36 sm:w-44 md:w-52 lg:w-60" />
+            </div>
+            
+            {/* Center - Title and tagline */}
             <div className="text-center">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Art-In-Motion</h1>
               <p className="text-muted-foreground text-xs sm:text-sm">{t('header.tagline')}</p>
             </div>
+            
+            {/* Right side - Action buttons */}
             <div className="flex justify-center sm:justify-end min-w-0">
-              <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2 bg-background/60 border border-border/40 rounded-full px-1.5 sm:px-2 py-1 backdrop-blur-sm ring-1 ring-border/30 max-w-full">
-                <GlobalSearch className="shrink w-32 xs:w-36 sm:w-44 md:w-52 lg:w-60" />
+              <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2 bg-background/60 border border-border/40 rounded-full px-1.5 sm:px-2 py-1 backdrop-blur-sm ring-1 ring-border/30">
                 <QuickActions />
                 <LanguageSwitcher />
                 <ThemeToggle />
-                <div className="flex-1" />
                 {user ? (
                   <Button
                     variant="ghost"

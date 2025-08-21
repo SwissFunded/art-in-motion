@@ -65,7 +65,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ placeholder = "Searc
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="h-8 sm:h-9 pl-7 pr-7 text-sm bg-transparent border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-full text-foreground/80 placeholder:text-muted-foreground/80 text-left placeholder-shown:text-center sm:placeholder-shown:text-left"
+          className="h-8 sm:h-9 pl-7 pr-7 text-sm bg-background/60 border-border/40 focus-visible:ring-1 focus-visible:ring-border/60 focus-visible:ring-offset-0 rounded-full text-foreground/80 placeholder:text-muted-foreground/80 text-left placeholder-shown:text-center sm:placeholder-shown:text-left backdrop-blur-sm ring-1 ring-border/30"
         />
         {query && (
           <button
